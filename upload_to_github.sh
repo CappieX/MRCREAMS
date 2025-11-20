@@ -82,30 +82,31 @@ ensure_git_repo
 
 if use_gh_cli; then
   echo "Using GitHub CLI (gh) to create/update repo."
-  USERNAME=$(gh api user --jq .login 2>/dev/null)
-  echo "Authenticated as: $USERNAME"
+    USERNAME=$(gh api user --jq .login 2>/dev/null)
+    echo "Authenticated as: $USERNAME"
 
-  # Try to create repo; if it exists, create will fail, so continue to push
-  # Newer gh versions may deprecate `--confirm`. Passing a dummy positional
-  # argument (e.g. 'y') skips the interactive prompt; keep flags for source/remote/push.
-  CREATE_FLAGS=("--source=." "--remote=origin" "--push")
-  if [ "$IS_PRIVATE" = true ]; then
-    CREATE_FLAGS+=("--private")
-  else
-    CREATE_FLAGS+=("--public")
-  fi
+    # Try to create repo under the authenticated account (omit explicit owner).
+    CREATE_FLAGS=("--source=." "--remote=origin" "--push")
 
-  # Attempt to create the repo non-interactively. If it fails (e.g. already exists)
-  # gh will return non-zero; we then set the remote and force-push.
-  if gh repo create "$USERNAME/$REPO_NAME" "${CREATE_FLAGS[@]}" y; then
-    echo "Repository created and pushed via gh."
-  else
-    echo "Repository may already exist (or gh returned non-zero). Setting remote and force-pushing."
-    git remote remove origin 2>/dev/null || true
-    git remote add origin "https://github.com/$USERNAME/$REPO_NAME.git" 2>/dev/null || git remote set-url origin "https://github.com/$USERNAME/$REPO_NAME.git"
-    echo "Force-pushing to https://github.com/$USERNAME/$REPO_NAME.git (main)"
-    git push --force origin HEAD:main
-  fi
+    # Some gh versions deprecate --confirm. To answer the interactive prompt non-interactively
+    # pipe a 'y' into gh. This avoids passing an extra positional arg which gh rejects.
+    if printf 'y\n' | gh repo create "$REPO_NAME" "${CREATE_FLAGS[@]}" 2>/dev/null; then
+      echo "Repository created and pushed via gh (under user: $USERNAME)."
+    else
+      echo "Repository may already exist or gh returned non-zero. Setting remote and force-pushing."
+      git remote remove origin 2>/dev/null || true
+      REMOTE_URL="https://github.com/$USERNAME/$REPO_NAME.git"
+      git remote add origin "$REMOTE_URL" 2>/dev/null || git remote set-url origin "$REMOTE_URL"
+      echo "Force-pushing to $REMOTE_URL (main)"
+      if ! git push --force origin HEAD:main; then
+        echo "Failed to push to $REMOTE_URL. Possible causes:"
+        echo "- You are authenticated as '$USERNAME' but the repository exists under a different account (e.g. 'CappieX')." >&2
+        echo "- You don't have permission to push to that repository." >&2
+        echo "Run 'gh auth status' and 'gh api user --jq .login' to confirm your active account." >&2
+        echo "If you intend to push to a different account (like 'CappieX'), re-authenticate with 'gh auth login' as that user, or supply a token fallback." >&2
+        exit 1
+      fi
+    fi
 
   echo "Done. Verify at: https://github.com/$USERNAME/$REPO_NAME"
   exit 0
