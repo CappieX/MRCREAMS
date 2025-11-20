@@ -1,0 +1,251 @@
+/* WelcomeScreen.css */
+.welcome-screen {
+  padding: 40px;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-container {
+  max-width: 800px;
+  text-align: center;
+  background: white;
+  border-radius: 20px;
+  padding: 60px 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4A90E2 0%, #8B5FBF 50%, #10B981 100%);
+}
+
+.welcome-header {
+  margin-bottom: 48px;
+}
+
+.welcome-icon {
+  font-size: 4rem;
+  margin-bottom: 24px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.welcome-header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #4A90E2 0%, #8B5FBF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 300;
+}
+
+.welcome-subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.welcome-content {
+  margin-bottom: 48px;
+}
+
+.welcome-features {
+  margin-bottom: 40px;
+}
+
+.welcome-features h3 {
+  font-size: 1.4rem;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border-left: 4px solid #4A90E2;
+}
+
+.feature-icon {
+  background: #4A90E2;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.next-steps {
+  margin-bottom: 40px;
+}
+
+.next-steps h3 {
+  font-size: 1.4rem;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.step-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.step-card:hover {
+  border-color: #4A90E2;
+  transform: translateY(-2px);
+}
+
+.step-number {
+  background: linear-gradient(135deg, #4A90E2 0%, #8B5FBF 100%);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin: 0 auto 12px;
+}
+
+.step-card p {
+  color: #666;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.personalization-notice {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #e7f3ff 0%, #f0f8ff 100%);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #4A90E2;
+  margin-top: 32px;
+}
+
+.notice-icon {
+  font-size: 2rem;
+  margin-right: 16px;
+}
+
+.notice-content h4 {
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.notice-content p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.welcome-actions {
+  margin-top: 48px;
+}
+
+.btn-primary.large {
+  padding: 16px 48px;
+  font-size: 1.2rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4A90E2 0%, #8B5FBF 100%);
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary.large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.4);
+}
+
+.welcome-note {
+  margin-top: 16px;
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .welcome-screen {
+    padding: 20px;
+    min-height: 90vh;
+  }
+
+  .welcome-container {
+    padding: 40px 20px;
+  }
+
+  .welcome-header h1 {
+    font-size: 2.2rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 1rem;
+  }
+
+  .features-list,
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .personalization-notice {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .notice-icon {
+    margin-right: 0;
+    margin-bottom: 12px;
+  }
+}

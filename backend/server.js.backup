@@ -1,0 +1,454 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const { authenticateToken } = require('./routes/authRoutes');
+const authRouter = require('./routes/auth');
+const adminRouter = require('./routes/adminRoutes');
+const supportTicketsRouter = require('./routes/supportTickets');
+
+const app = express();
+const PORT = process.env.PORT || 6000;
+
+// SQLite database setup
+const dbPath = path.join(__dirname, 'mrcreams.db');
+const db = new sqlite3.Database(dbPath);
+
+// Create tables if they don't exist
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    name TEXT NOT NULL,
+    user_type TEXT NOT NULL,
+    organization_code TEXT,
+    onboarding_completed BOOLEAN DEFAULT 0,
+    email_verified BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS conflicts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date DATE NOT NULL,
+    time TIME NOT NULL,
+    conflict_reason TEXT NOT NULL,
+    time_consumption INTEGER NOT NULL,
+    fight_degree INTEGER NOT NULL,
+    final_result TEXT,
+    remark TEXT,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+  )`);
+});
+
+// Test database connection
+db.get('SELECT 1 as test', (err, row) => {
+  if (err) {
+    console.error('Database connection error:', err);
+    console.log('Continuing with limited functionality...');
+  } else {
+    console.log('SQLite database connected successfully');
+  }
+});
+
+// Routes
+app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/v1/support', supportTicketsRouter);
+
+// Protected routes middleware
+const protectRoute = (req, res, next) => {
+  // Skip authentication for demo purposes if needed
+  const skipAuth = req.query.skipAuth === 'true';
+  if (skipAuth) {
+    return next();
+  }
+  return authenticateToken(req, res, next);
+};
+
+// Get all conflicts
+app.get('/api/conflicts', protectRoute, async (req, res) => {
+  try {
+    // If user is admin, show all conflicts, otherwise only show user's conflicts
+    let query = 'SELECT * FROM conflicts';
+    let params = [];
+
+    if (req.user && !req.user.isAdmin) {
+      query += ' WHERE user_id = ?';
+      params.push(req.user.id);
+    }
+
+    query += ' ORDER BY date DESC, time DESC';
+
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        console.error('Error fetching conflicts:', err);
+        return res.status(500).json({ error: 'Server error' });
+      }
+      res.json(rows);
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get a single conflict
+app.get('/api/conflicts/:id', protectRoute, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let query = 'SELECT * FROM conflicts WHERE id = ?';
+    let params = [id];
+
+    // If not admin, only allow access to own conflicts
+    if (req.user && !req.user.isAdmin) {
+      query += ' AND user_id = ?';
+      params.push(req.user.id);
+    }
+
+    db.get(query, params, (err, row) => {
+      if (err) {
+        console.error('Error fetching conflict:', err);
+        return res.status(500).json({ error: 'Server error' });
+      }
+
+      if (!row) {
+        return res.status(404).json({ error: 'Conflict not found' });
+      }
+
+      res.json(row);
+    });
+  } catch (err) {
+    console.error('Error fetching conflict:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Create a new conflict
+app.post('/api/conflicts', protectRoute, async (req, res) => {
+  try {
+    const { date, time, conflict_reason, time_consumption, fight_degree, final_result, remark } = req.body;
+
+    // Validate required fields
+    if (!date || !time || !conflict_reason || !time_consumption || !fight_degree) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Ensure user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const query = `INSERT INTO conflicts (date, time, conflict_reason, time_consumption, fight_degree, final_result, remark, user_id)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [date, time, conflict_reason, time_consumption, fight_degree, final_result, remark, req.user.id];
+
+    db.run(query, params, function(err) {
+      if (err) {
+        console.error('Error creating conflict:', err);
+        return res.status(500).json({ error: 'Failed to save conflict. Please try again.' });
+      }
+
+      // Get the created conflict
+      db.get('SELECT * FROM conflicts WHERE id = ?', [this.lastID], (err, row) => {
+        if (err) {
+          console.error('Error fetching created conflict:', err);
+          return res.status(500).json({ error: 'Failed to retrieve created conflict.' });
+        }
+        res.status(201).json(row);
+      });
+    });
+  } catch (err) {
+    console.error('Error creating conflict:', err);
+    res.status(500).json({ error: 'Failed to save conflict. Please try again.' });
+  }
+});
+
+// Update a conflict
+app.put('/api/conflicts/:id', protectRoute, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, time, conflict_reason, time_consumption, fight_degree, final_result, remark } = req.body;
+
+    let query = 'UPDATE conflicts SET date = ?, time = ?, conflict_reason = ?, time_consumption = ?, fight_degree = ?, final_result = ?, remark = ? WHERE id = ?';
+    let params = [date, time, conflict_reason, time_consumption, fight_degree, final_result, remark, id];
+
+    // If not admin, only allow updating own conflicts
+    if (req.user && !req.user.isAdmin) {
+      query += ' AND user_id = ?';
+      params.push(req.user.id);
+    }
+
+    db.run(query, params, function(err) {
+      if (err) {
+        console.error('Error updating conflict:', err);
+        return res.status(500).json({ error: 'Server error' });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Conflict not found or you do not have permission to update it' });
+      }
+
+      // Get the updated conflict
+      const selectQuery = req.user && !req.user.isAdmin
+        ? 'SELECT * FROM conflicts WHERE id = ? AND user_id = ?'
+        : 'SELECT * FROM conflicts WHERE id = ?';
+
+      const selectParams = req.user && !req.user.isAdmin ? [id, req.user.id] : [id];
+
+      db.get(selectQuery, selectParams, (err, row) => {
+        if (err) {
+          console.error('Error fetching updated conflict:', err);
+          return res.status(500).json({ error: 'Server error' });
+        }
+
+        if (!row) {
+          return res.status(404).json({ error: 'Conflict not found or you do not have permission to update it' });
+        }
+
+        res.json(row);
+      });
+    });
+  } catch (err) {
+    console.error('Error updating conflict:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete a conflict
+app.delete('/api/conflicts/:id', protectRoute, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let query = 'DELETE FROM conflicts WHERE id = ?';
+    let params = [id];
+
+    // If not admin, only allow deleting own conflicts
+    if (req.user && !req.user.isAdmin) {
+      query += ' AND user_id = ?';
+      params.push(req.user.id);
+    }
+
+    db.run(query, params, function(err) {
+      if (err) {
+        console.error('Error deleting conflict:', err);
+        return res.status(500).json({ error: 'Server error' });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Conflict not found or you do not have permission to delete it' });
+      }
+
+      res.json({ message: 'Conflict deleted successfully' });
+    });
+  } catch (err) {
+    console.error('Error deleting conflict:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Analytics endpoint
+app.get('/api/analytics', protectRoute, async (req, res) => {
+  try {
+    let query = 'SELECT COUNT(*) FROM conflicts';
+    let params = [];
+
+    // If not admin, only count user's conflicts
+    if (req.user && !req.user.isAdmin) {
+      query += ' WHERE user_id = ?';
+      params.push(req.user.id);
+    }
+
+    // Get total conflicts
+    db.get(query, params, (err, row) => {
+      if (err) {
+        console.error('Error getting total conflicts:', err);
+        return res.status(500).json({ error: 'Server error' });
+      }
+
+      const totalConflicts = row ? row['COUNT(*)'] : 0;
+
+      // Get conflicts by reason
+      let reasonQuery = 'SELECT conflict_reason as name, COUNT(*) as value FROM conflicts';
+      let reasonParams = [];
+
+      if (req.user && !req.user.isAdmin) {
+        reasonQuery += ' WHERE user_id = ?';
+        reasonParams.push(req.user.id);
+      }
+
+      reasonQuery += ' GROUP BY conflict_reason ORDER BY value DESC';
+
+      db.all(reasonQuery, reasonParams, (err, reasonRows) => {
+        if (err) {
+          console.error('Error getting conflicts by reason:', err);
+          return res.status(500).json({ error: 'Server error' });
+        }
+
+        // Get average fight degree
+        let avgDegreeQuery = 'SELECT AVG(fight_degree) as avg_degree FROM conflicts';
+        let avgDegreeParams = [];
+
+        if (req.user && !req.user.isAdmin) {
+          avgDegreeQuery += ' WHERE user_id = ?';
+          avgDegreeParams.push(req.user.id);
+        }
+
+        db.get(avgDegreeQuery, avgDegreeParams, (err, avgDegreeRow) => {
+          if (err) {
+            console.error('Error getting average fight degree:', err);
+            return res.status(500).json({ error: 'Server error' });
+          }
+
+          const avgFightDegree = avgDegreeRow && avgDegreeRow.avg_degree ? parseFloat(avgDegreeRow.avg_degree).toFixed(1) : '0.0';
+
+          // Get average time consumption
+          let avgTimeQuery = 'SELECT AVG(time_consumption) as avg_time FROM conflicts';
+          let avgTimeParams = [];
+
+          if (req.user && !req.user.isAdmin) {
+            avgTimeQuery += ' WHERE user_id = ?';
+            avgTimeParams.push(req.user.id);
+          }
+
+          db.get(avgTimeQuery, avgTimeParams, (err, avgTimeRow) => {
+            if (err) {
+              console.error('Error getting average time consumption:', err);
+              return res.status(500).json({ error: 'Server error' });
+            }
+
+            const avgTimeConsumption = avgTimeRow && avgTimeRow.avg_time ? parseFloat(avgTimeRow.avg_time).toFixed(1) : '0.0';
+
+            // For SQLite, we'll use a simpler monthly query since SQLite doesn't have TO_CHAR
+            const monthlyQuery = `
+              SELECT
+                strftime('%Y-%m', date) as month,
+                COUNT(*) as count,
+                AVG(fight_degree) as avg_degree
+              FROM conflicts
+              ${req.user && !req.user.isAdmin ? 'WHERE user_id = ?' : ''}
+              GROUP BY strftime('%Y-%m', date)
+              ORDER BY month
+            `;
+
+            const monthlyParams = req.user && !req.user.isAdmin ? [req.user.id] : [];
+
+            db.all(monthlyQuery, monthlyParams, (err, monthlyRows) => {
+              if (err) {
+                console.error('Error getting monthly trends:', err);
+                return res.status(500).json({ error: 'Server error' });
+              }
+
+              res.json({
+                totalConflicts,
+                conflictsByReason: reasonRows || [],
+                avgFightDegree,
+                avgTimeConsumption,
+                monthlyTrends: monthlyRows || []
+              });
+            });
+          });
+        });
+      });
+    });
+  } catch (err) {
+    console.error('Error generating analytics:', err);
+    // Return mock data for demo purposes
+    res.json({
+      totalConflicts: 11,
+      conflictsByReason: [
+        { name: 'Household chores', value: 5 },
+        { name: 'Financial disagreement', value: 3 },
+        { name: 'Communication issues', value: 2 },
+        { name: 'In-laws', value: 1 }
+      ],
+      avgFightDegree: '3.5',
+      avgTimeConsumption: '22.7',
+      monthlyTrends: [
+        { month: '2025-10', count: '7', avg_degree: '3.8' },
+        { month: '2025-11', count: '4', avg_degree: '3.0' }
+      ]
+    });
+  }
+});
+
+// Recommendations endpoint
+app.get('/api/recommendations', async (req, res) => {
+  try {
+    // Get most common conflict reasons
+    const commonReasonsQuery = `
+      SELECT conflict_reason, COUNT(*) as count
+      FROM conflicts
+      GROUP BY conflict_reason
+      ORDER BY count DESC
+      LIMIT 3
+    `;
+
+    db.all(commonReasonsQuery, [], (err, commonReasonsRows) => {
+      if (err) {
+        console.error('Error getting common reasons:', err);
+        return res.status(500).json({ error: 'Server error' });
+      }
+
+      // Get highest fight degree conflicts
+      const highIntensityQuery = `
+        SELECT * FROM conflicts
+        WHERE fight_degree >= 8
+        ORDER BY fight_degree DESC, date DESC
+        LIMIT 3
+      `;
+
+      db.all(highIntensityQuery, [], (err, highIntensityRows) => {
+        if (err) {
+          console.error('Error getting high intensity conflicts:', err);
+          return res.status(500).json({ error: 'Server error' });
+        }
+
+        // Get longest conflicts
+        const longConflictsQuery = `
+          SELECT * FROM conflicts
+          WHERE time_consumption >= 60
+          ORDER BY time_consumption DESC, date DESC
+          LIMIT 3
+        `;
+
+        db.all(longConflictsQuery, [], (err, longConflictsRows) => {
+          if (err) {
+            console.error('Error getting long conflicts:', err);
+            return res.status(500).json({ error: 'Server error' });
+          }
+
+          res.json({
+            commonReasons: commonReasonsRows || [],
+            highIntensityConflicts: highIntensityRows || [],
+            longConflicts: longConflictsRows || []
+          });
+        });
+      });
+    });
+  } catch (err) {
+    console.error('Error generating recommendations:', err);
+    // Return mock data for demo purposes
+    res.json({
+      commonReasons: [
+        { conflict_reason: 'Household chores', count: '5' },
+        { conflict_reason: 'Financial disagreement', count: '3' },
+        { conflict_reason: 'Communication issues', count: '2' }
+      ],
+      highIntensityConflicts: [
+        { id: 5, date: '2025-10-15', time: '20:30:00', conflict_reason: 'Financial disagreement', time_consumption: 45, fight_degree: 9, final_result: 'Unresolved', remark: 'Need professional counseling' }
+      ],
+      longConflicts: [
+        { id: 8, date: '2025-11-02', time: '18:15:00', conflict_reason: 'In-laws', time_consumption: 75, fight_degree: 7, final_result: 'Partially resolved', remark: 'Agreed to set boundaries' }
+      ]
+    });
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

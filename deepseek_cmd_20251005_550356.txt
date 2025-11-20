@@ -1,0 +1,2 @@
+createdb -U postgres wife_conflict_db
+psql -U postgres -d wife_conflict_db -f "C:\path\to\your\project\backend\database.sql"

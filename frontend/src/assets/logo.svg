@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1976d2" />
+      <stop offset="100%" stop-color="#e91e63" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="60" rx="10" fill="url(#gradient)" opacity="0.1" />
+  <text x="10" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="currentColor">
+    W.C.R.E.A.M.S.
+  </text>
+  <path d="M170 20c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10-4.5-10-10-10zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-1-13h2v6h-2v-6zm0 8h2v2h-2v-2z" fill="currentColor" />
+</svg>

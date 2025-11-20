@@ -1,0 +1,29 @@
+
+## 2. Backend Files
+
+### backend/package.json
+```json
+{
+  "name": "wife-conflict-backend",
+  "version": "1.0.0",
+  "description": "Backend for W.C.R.E.A.M.S.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup-db": "psql -U postgres -d wife_conflict_db -f database.sql"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1",
+    "json2csv": "^6.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["conflict", "analysis", "relationship"],
+  "author": "W.C.R.E.A.M.S. Team",
+  "license": "MIT"
+}
