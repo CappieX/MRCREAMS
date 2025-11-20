@@ -26,7 +26,11 @@ while [[ $# -gt 0 ]]; do
     --private) IS_PRIVATE=true; shift ;;
     -y|--yes) ASSUME_YES=true; shift ;;
     --) shift; break ;;
-    *) shift ;;
+    *)
+      # Any unknown positional argument will be treated as 'skip confirmation'
+      ASSUME_YES=true
+      shift
+      ;;
   esac
 done
 
@@ -82,17 +86,21 @@ if use_gh_cli; then
   echo "Authenticated as: $USERNAME"
 
   # Try to create repo; if it exists, create will fail, so continue to push
-  CREATE_FLAGS=("--source=." "--remote=origin" "--push" "--confirm")
+  # Newer gh versions may deprecate `--confirm`. Passing a dummy positional
+  # argument (e.g. 'y') skips the interactive prompt; keep flags for source/remote/push.
+  CREATE_FLAGS=("--source=." "--remote=origin" "--push")
   if [ "$IS_PRIVATE" = true ]; then
     CREATE_FLAGS+=("--private")
   else
     CREATE_FLAGS+=("--public")
   fi
 
-  if gh repo create "$USERNAME/$REPO_NAME" "${CREATE_FLAGS[@]}" 2>/dev/null; then
+  # Attempt to create the repo non-interactively. If it fails (e.g. already exists)
+  # gh will return non-zero; we then set the remote and force-push.
+  if gh repo create "$USERNAME/$REPO_NAME" "${CREATE_FLAGS[@]}" y; then
     echo "Repository created and pushed via gh."
   else
-    echo "Repository may already exist. Setting remote and force-pushing."
+    echo "Repository may already exist (or gh returned non-zero). Setting remote and force-pushing."
     git remote remove origin 2>/dev/null || true
     git remote add origin "https://github.com/$USERNAME/$REPO_NAME.git" 2>/dev/null || git remote set-url origin "https://github.com/$USERNAME/$REPO_NAME.git"
     echo "Force-pushing to https://github.com/$USERNAME/$REPO_NAME.git (main)"
