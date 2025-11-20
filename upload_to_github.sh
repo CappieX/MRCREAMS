@@ -16,8 +16,20 @@ set -euo pipefail
 # and will overwrite remote contents. Back up the remote repository first.
 
 DEFAULT_REPO="MRCREAMS-ModernRelationshipConflictResolutionEmotionAnalysisManagementSystem"
-REPO_NAME="${1:-$DEFAULT_REPO}"
-shift 1 || true
+# Parse optional owner/repo or --owner OWNER
+OWNER=""
+if [[ "${1-}" == --owner ]]; then
+  OWNER="$2"
+  shift 2 || true
+fi
+if [[ "${1-}" == */* ]]; then
+  OWNER="${1%%/*}"
+  REPO_NAME="${1##*/}"
+  shift || true
+else
+  REPO_NAME="${1:-$DEFAULT_REPO}"
+  shift 1 || true
+fi
 IS_PRIVATE=false
 ASSUME_YES=false
 
@@ -25,6 +37,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --private) IS_PRIVATE=true; shift ;;
     -y|--yes) ASSUME_YES=true; shift ;;
+    --owner)
+      OWNER="$2"
+      shift 2 || true
+      ;;
     --) shift; break ;;
     *)
       # Any unknown positional argument will be treated as 'skip confirmation'
@@ -34,7 +50,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "Target repo: $REPO_NAME"
+if [ -n "$OWNER" ]; then
+  echo "Target repo: $OWNER/$REPO_NAME"
+else
+  echo "Target repo: $REPO_NAME"
+fi
 
 confirm() {
   if [ "$ASSUME_YES" = true ]; then
@@ -87,15 +107,24 @@ if use_gh_cli; then
 
     # Try to create repo under the authenticated account (omit explicit owner).
     CREATE_FLAGS=("--source=." "--remote=origin" "--push")
+    if [ -n "$OWNER" ]; then
+      TARGET="$OWNER/$REPO_NAME"
+    else
+      TARGET="$REPO_NAME"
+    fi
 
     # Some gh versions deprecate --confirm. To answer the interactive prompt non-interactively
     # pipe a 'y' into gh. This avoids passing an extra positional arg which gh rejects.
-    if printf 'y\n' | gh repo create "$REPO_NAME" "${CREATE_FLAGS[@]}" 2>/dev/null; then
+      if printf 'y\n' | gh repo create "$TARGET" "${CREATE_FLAGS[@]}" 2>/dev/null; then
       echo "Repository created and pushed via gh (under user: $USERNAME)."
     else
       echo "Repository may already exist or gh returned non-zero. Setting remote and force-pushing."
       git remote remove origin 2>/dev/null || true
-      REMOTE_URL="https://github.com/$USERNAME/$REPO_NAME.git"
+      if [ -n "$OWNER" ]; then
+        REMOTE_URL="https://github.com/$OWNER/$REPO_NAME.git"
+      else
+        REMOTE_URL="https://github.com/$USERNAME/$REPO_NAME.git"
+      fi
       git remote add origin "$REMOTE_URL" 2>/dev/null || git remote set-url origin "$REMOTE_URL"
       echo "Force-pushing to $REMOTE_URL (main)"
       if ! git push --force origin HEAD:main; then
@@ -142,16 +171,27 @@ echo "Token authenticated as: $USERNAME"
 
 # Create repo
 CREATE_PAYLOAD=$(jq -n --arg name "$REPO_NAME" --argjson priv $IS_PRIVATE '{name:$name,private:$priv}')
+# Choose create URL: user repos or org repos if OWNER set (and different from token user)
+if [ -n "$OWNER" ] && [ "$OWNER" != "$USERNAME" ]; then
+  CREATE_URL="https://api.github.com/orgs/$OWNER/repos"
+else
+  CREATE_URL="https://api.github.com/user/repos"
+fi
 HTTP_STATUS=$(curl -s -o /tmp/gh_create_resp.json -w "%{http_code}" \
   -H "Authorization: token $GITHUB_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$CREATE_PAYLOAD" \
-  "https://api.github.com/user/repos")
+  "$CREATE_URL")
 
+# Handle responses
 if [ "$HTTP_STATUS" = "201" ]; then
   echo "Repository created on GitHub."
 elif [ "$HTTP_STATUS" = "422" ]; then
   echo "Repository already exists; will replace contents by force-pushing."
+elif [ "$HTTP_STATUS" = "403" ]; then
+  echo "Permission denied creating repo (HTTP 403). Check token scopes and whether you can create repos under '$OWNER' or organization settings." >&2
+  cat /tmp/gh_create_resp.json >&2
+  exit 1
 else
   echo "Unexpected response creating repo (HTTP $HTTP_STATUS). See /tmp/gh_create_resp.json" >&2
   cat /tmp/gh_create_resp.json >&2
@@ -159,12 +199,17 @@ else
 fi
 
 # Force-push using token URL (non-interactive). We remove token from config afterwards.
-REMOTE_URL="https://$GITHUB_TOKEN@github.com/$USERNAME/$REPO_NAME.git"
-echo "Force-pushing to $USERNAME/$REPO_NAME (main) using token-based remote..."
+if [ -n "$OWNER" ]; then
+  PUSH_OWNER="$OWNER"
+else
+  PUSH_OWNER="$USERNAME"
+fi
+REMOTE_URL="https://$GITHUB_TOKEN@github.com/$PUSH_OWNER/$REPO_NAME.git"
+echo "Force-pushing to $PUSH_OWNER/$REPO_NAME (main) using token-based remote..."
 git push --force "$REMOTE_URL" HEAD:main
 
 echo "Cleaning up remote to avoid leaving token in git config."
 git remote remove origin 2>/dev/null || true
-git remote add origin "https://github.com/$USERNAME/$REPO_NAME.git" || git remote set-url origin "https://github.com/$USERNAME/$REPO_NAME.git"
+git remote add origin "https://github.com/$PUSH_OWNER/$REPO_NAME.git" || git remote set-url origin "https://github.com/$PUSH_OWNER/$REPO_NAME.git"
 
-echo "Upload complete. Verify at: https://github.com/$USERNAME/$REPO_NAME"
+echo "Upload complete. Verify at: https://github.com/$PUSH_OWNER/$REPO_NAME"

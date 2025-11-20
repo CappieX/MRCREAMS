@@ -1,9 +1,0 @@
-# Terminal 1 - Backend
-cd backend
-npm install
-npm run dev
-
-# Terminal 2 - Frontend  
-cd frontend
-npm install
-npm start
