@@ -60,3 +60,9 @@ Security notes
 - Back up the remote repository (or any important branches) before force-pushing since this operation is destructive.
 
 If you still see an error, copy the exact terminal output and I'll suggest the next corrective step.
+
+# show largest objects in current repo (local)
+git rev-list --objects --all \
+  | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
+  | awk '$1=="blob" {print $3, $2}' \
+  | sort -n -r | head -n 20
