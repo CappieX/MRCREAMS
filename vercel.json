@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "frontend/build",
+  "outputDirectory": "MRCREAMS/frontend/build",
   "installCommand": "npm install",
   "framework": "create-react-app"
 }
