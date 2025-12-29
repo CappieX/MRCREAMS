@@ -332,17 +332,12 @@ const corsSecurity = (req, res, next) => {
  * API versioning middleware
  */
 const apiVersioning = (req, res, next) => {
-  const apiVersion = req.get('API-Version') || req.query.apiVersion;
-  
-  if (req.path.startsWith('/api/') && !apiVersion) {
-    return res.status(400).json({
-      success: false,
-      message: 'API version is required',
-      code: 'API_VERSION_REQUIRED',
-      supportedVersions: ['v1']
-    });
-  }
-  
+  const apiVersion =
+    req.get('API-Version') ||
+    req.get('X-API-Version') ||
+    req.query.apiVersion ||
+    'v1';
+
   if (apiVersion && !['v1'].includes(apiVersion)) {
     return res.status(400).json({
       success: false,
@@ -351,7 +346,8 @@ const apiVersioning = (req, res, next) => {
       supportedVersions: ['v1']
     });
   }
-  
+
+  req.apiVersion = apiVersion;
   next();
 };
 

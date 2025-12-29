@@ -22,7 +22,7 @@ import EmotionInsightDashboard from './pages/EmotionInsightDashboard';
 import HarmonyGuidance from './pages/HarmonyGuidance';
 import Login from './pages/Login';
 import SystemHarmonyAdmin from './pages/SystemHarmonyAdmin';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './pages/dashboard/AdminDashboard';
 import LandingPage from './pages/LandingPage';
 import UserTypeSelection from './pages/UserTypeSelection';
 import ApplicationVerification from './pages/ApplicationVerification';

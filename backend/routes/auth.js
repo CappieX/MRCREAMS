@@ -244,6 +244,93 @@ router.post('/login', async (req, res) => {
 });
 
 /**
+ * @route POST /api/auth/professional-login
+ * @desc Professional login with organization code and role mapping
+ * @access Public
+ */
+router.post('/professional-login', async (req, res) => {
+  try {
+    const { email, password, organizationCode, role } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required'
+      });
+    }
+
+    const userResult = await query(`
+      SELECT u.*, o.name as organization_name, o.code as organization_code
+      FROM users u
+      LEFT JOIN organizations o ON u.organization_id = o.id
+      WHERE u.email = $1 AND u.is_active = true
+    `, [email.toLowerCase()]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ success: false, error: 'Invalid email or password' });
+    }
+
+    const user = userResult.rows[0];
+    const isPasswordValid = await comparePassword(password, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, error: 'Invalid email or password' });
+    }
+
+    if (organizationCode && role) {
+      const orgRoleMapping = {
+        'MRCREAMS-SUPER-001': ['super_admin'],
+        'MRCREAMS-ADMIN-001': ['admin'],
+        'MRCREAMS-SUPPORT-001': ['support'],
+        'MRCREAMS-THERAPIST-001': ['therapist'],
+        'MRCREAMS-EXECUTIVE-001': ['executive']
+      };
+
+      if (!orgRoleMapping[organizationCode]) {
+        return res.status(401).json({ success: false, error: 'Invalid organization code' });
+      }
+      if (!orgRoleMapping[organizationCode].includes(role)) {
+        return res.status(401).json({ success: false, error: 'Invalid role for this organization' });
+      }
+
+      if (user.user_type !== role) {
+        await query('UPDATE users SET user_type = $1 WHERE id = $2', [role, user.id]);
+        user.user_type = role;
+      }
+    }
+
+    const session = await createUserSession(user.id, req.ip, req.get('User-Agent'));
+    const token = generateToken({
+      userId: user.id,
+      email: user.email,
+      userType: user.user_type,
+      organizationId: user.organization_id
+    });
+
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        userType: user.user_type,
+        organizationId: user.organization_id,
+        organizationName: user.organization_name,
+        organizationCode: user.organization_code,
+        onboardingCompleted: user.onboarding_completed,
+        emailVerified: user.email_verified
+      },
+      token,
+      refreshToken: session.refreshToken,
+      expiresAt: session.expiresAt
+    });
+  } catch (error) {
+    console.error('Professional login error:', error);
+    res.status(500).json({ success: false, error: 'Server error during login' });
+  }
+});
+
+/**
  * @route POST /api/auth/refresh
  * @desc Refresh access token
  * @access Public
