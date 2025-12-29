@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -26,7 +27,10 @@ const { sanitizeInput, securityValidation, validatePayloadSize } = require('./mi
 const SecurityService = require('./services/securityService');
 
 const app = express();
-const PORT = process.env.PORT || 6000;
+// Default to 5002 for local dev (macOS often has AirPlay/AirTunes bound to :5000).
+// Production/docker can still set PORT=5000 (see docker-compose/nginx).
+const PORT = process.env.PORT || 5002;
+const isDev = process.env.NODE_ENV !== 'production';
 
 // Security middleware
 app.use(configureSecurityHeaders());
@@ -34,8 +38,8 @@ app.use(requestLogging);
 app.use(securityEventLogging);
 app.use(ipSecurity);
 app.use(userAgentValidation);
-app.use(requestSizeLimit(1024 * 1024)); // 1MB limit
-app.use(requestFrequencyLimit(60000, 100)); // 100 requests per minute
+app.use(requestSizeLimit(1024 * 1024));
+app.use(requestFrequencyLimit(60000, isDev ? 1000 : 100));
 app.use(httpsEnforcement);
 app.use(corsSecurity);
 app.use(apiVersioning);
@@ -60,13 +64,23 @@ app.use(helmet({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 1000 : 100,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => isDev && (req.ip === '127.0.0.1' || req.ip === '::1' || req.hostname === 'localhost')
 });
-app.use(limiter);
+app.use('/api', limiter);
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isDev ? 100 : 20,
+  message: 'Too many login attempts. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => isDev && (req.ip === '127.0.0.1' || req.ip === '::1' || req.hostname === 'localhost')
+});
 
 // CORS configuration
 app.use(cors({
@@ -107,7 +121,7 @@ app.get('/health', async (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', authRouter);
+app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/v1/support', supportTicketsRouter);
 app.use('/api/emotions', emotionAnalysisRouter);
@@ -121,16 +135,8 @@ app.use('/api/hipaa', hipaaComplianceRouter);
 app.use('/api/gdpr', gdprComplianceRouter);
 app.use('/api/security', securityRouter);
 
-// Protected routes middleware
-const protectRoute = (req, res, next) => {
-  // Skip authentication for demo purposes if needed
-  const skipAuth = req.query.skipAuth === 'true';
-  if (skipAuth) {
-    return next();
-  }
-  // TODO: Implement proper JWT authentication
-  return next();
-};
+// Protected routes middleware - require valid JWT for private APIs
+const protectRoute = authenticateToken;
 
 // Conflicts API endpoints (migrated to PostgreSQL)
 app.get('/api/conflicts', protectRoute, async (req, res) => {

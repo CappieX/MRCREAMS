@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Box, Typography, Grid, Card, CardContent, Avatar, Chip, Button,
-  LinearProgress, TextField, InputAdornment, IconButton, Tooltip
+  LinearProgress, TextField, InputAdornment
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -11,7 +11,6 @@ import {
   Event as EventIcon,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
-import DashboardCard from '../../components/dashboard/DashboardCard';
 import { dashboardTheme } from '../../constants/dashboardTheme';
 
 const MyClients = () => {

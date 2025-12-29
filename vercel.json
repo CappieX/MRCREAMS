@@ -1,6 +1,12 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "MRCREAMS/frontend/build",
-  "installCommand": "npm install",
-  "framework": "create-react-app"
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build"
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/frontend/build/$1" }
+  ]
 }

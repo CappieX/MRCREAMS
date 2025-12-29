@@ -12,23 +12,19 @@ import {
   Edit as EditIcon,
   Person as PersonIcon,
   AccessTime as TimeIcon,
-  Category as CategoryIcon,
-  LocalOffer as TagIcon
+  Category as CategoryIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { dashboardTheme } from '../../constants/dashboardTheme';
 import axios from 'axios';
 
 const TicketDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {

@@ -22,6 +22,7 @@ import EmotionInsightDashboard from './pages/EmotionInsightDashboard';
 import HarmonyGuidance from './pages/HarmonyGuidance';
 import Login from './pages/Login';
 import SystemHarmonyAdmin from './pages/SystemHarmonyAdmin';
+import AdminDashboard from './pages/AdminDashboard';
 import LandingPage from './pages/LandingPage';
 import UserTypeSelection from './pages/UserTypeSelection';
 import ApplicationVerification from './pages/ApplicationVerification';
@@ -31,7 +32,6 @@ import ProfessionalLogin from './pages/ProfessionalLogin';
 
 // Dashboard Components
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
-import AdminDashboard from './pages/dashboard/AdminDashboard';
 import ITAdminDashboard from './pages/dashboard/ITAdminDashboard';
 import SupportDashboard from './pages/dashboard/SupportDashboard';
 import ExecutiveDashboard from './pages/dashboard/ExecutiveDashboard';
@@ -70,7 +70,6 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import UnifiedRegistration from './components/auth/UnifiedRegistration';
 
 const AuthenticatedLayout = () => {
-  const { theme } = useContext(ThemeContext);
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -111,7 +110,7 @@ const AuthenticatedLayout = () => {
                 <Route path="support" element={<SupportEscalations />} />
               </Route>
               <Route path="/dashboard/admin" element={
-                <ProtectedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={['admin', 'super_admin', 'it_admin']}>
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
@@ -150,6 +149,11 @@ const AuthenticatedLayout = () => {
               <Route path="/harmony-guidance" element={<HarmonyGuidance />} />
               <Route path="/emotion-checkin" element={<EmotionCheckInPage />} />
               <Route path="/conflict-input" element={<ConflictInputPage />} />
+              <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={['admin', 'super_admin', 'it_admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/system-harmony" element={
                 <ProtectedRoute adminOnly={true}>
                   <SystemHarmonyAdmin />
@@ -166,7 +170,7 @@ const AuthenticatedLayout = () => {
 
 const AppContent = () => {
   const { theme } = useContext(ThemeContext);
-  const { needsOnboarding, completeOnboarding } = useOnboarding();
+  const { completeOnboarding } = useOnboarding();
   
   useEffect(() => {
     // Initialize accessibility features

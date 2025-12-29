@@ -3,7 +3,8 @@
  * Centralized API communication layer
  */
 
-const API_BASE_URL = '/api';
+// Default to relative `/api` so CRA dev proxy (src/setupProxy.js) + nginx production proxy work.
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
 
 // Generic API request handler with error management
 const apiRequest = async (endpoint, method = 'GET', data = null, token = null) => {
@@ -11,6 +12,7 @@ const apiRequest = async (endpoint, method = 'GET', data = null, token = null) =
   
   const headers = {
     'Content-Type': 'application/json',
+    'API-Version': 'v1',
   };
   
   // Add auth token if provided
@@ -43,11 +45,10 @@ const apiRequest = async (endpoint, method = 'GET', data = null, token = null) =
       const responseData = await response.json();
       
       if (!response.ok) {
-        throw {
-          status: response.status,
-          message: responseData.message || 'An error occurred',
-          data: responseData
-        };
+        const err = new Error(responseData.message || 'An error occurred');
+        err.status = response.status;
+        err.data = responseData;
+        throw err;
       }
       
       return responseData;
@@ -55,15 +56,43 @@ const apiRequest = async (endpoint, method = 'GET', data = null, token = null) =
       const textResponse = await response.text();
       
       if (!response.ok) {
-        throw {
-          status: response.status,
-          message: textResponse || 'An error occurred',
-        };
+        const err = new Error(textResponse || 'An error occurred');
+        err.status = response.status;
+        throw err;
       }
       
       return textResponse;
     }
   } catch (error) {
+    const isDev = typeof window !== 'undefined' && window.location && window.location.port === '3000';
+    const shouldRetry = isDev && (error && (error.status === 504 || error.code === 'ECONNREFUSED'));
+    if (shouldRetry) {
+      const fallbackUrl = `http://127.0.0.1:5002${endpoint}`;
+      try {
+        const retryResponse = await fetch(fallbackUrl, options);
+        const retryContentType = retryResponse.headers.get('content-type');
+        if (retryContentType && retryContentType.includes('application/json')) {
+          const retryData = await retryResponse.json();
+          if (!retryResponse.ok) {
+            const retryErr = new Error(retryData.message || 'An error occurred');
+            retryErr.status = retryResponse.status;
+            retryErr.data = retryData;
+            throw retryErr;
+          }
+          return retryData;
+        } else {
+          const retryText = await retryResponse.text();
+          if (!retryResponse.ok) {
+            const retryErr = new Error(retryText || 'An error occurred');
+            retryErr.status = retryResponse.status;
+            throw retryErr;
+          }
+          return retryText;
+        }
+      } catch (retryError) {
+        console.error(`API Retry Error (${fallbackUrl}):`, retryError);
+      }
+    }
     console.error(`API Error (${url}):`, error);
     throw error;
   }
@@ -71,14 +100,20 @@ const apiRequest = async (endpoint, method = 'GET', data = null, token = null) =
 
 // Auth API
 export const authAPI = {
-  login: (email, password, organizationCode, role) => 
+  login: (email, password) => 
+    apiRequest('/auth/login', 'POST', { email, password }),
+
+  professionalLogin: (email, password, organizationCode, role) =>
     apiRequest('/auth/professional-login', 'POST', { email, password, organizationCode, role }),
   
   register: (userData) => 
     apiRequest('/auth/register', 'POST', userData),
   
-  verifyToken: () => 
-    apiRequest('/auth/verify-token'),
+  verifyToken: () =>
+    apiRequest('/auth/verify'),
+  
+  refresh: (refreshToken) =>
+    apiRequest('/auth/refresh', 'POST', { refreshToken }),
     
   logout: () => 
     apiRequest('/auth/logout', 'POST')
@@ -87,25 +122,25 @@ export const authAPI = {
 // User API
 export const userAPI = {
   getCurrentUser: () => 
-    apiRequest('/users/me'),
+    apiRequest('/auth/me'),
   
   updateProfile: (userData) => 
-    apiRequest('/users/me', 'PUT', userData),
+    apiRequest('/auth/profile', 'PUT', userData),
     
   getUsers: (filters = {}) => 
-    apiRequest('/users', 'GET', filters),
+    apiRequest('/admin/users', 'GET', filters),
     
   getUserById: (userId) => 
-    apiRequest(`/users/${userId}`),
+    apiRequest(`/admin/users/${userId}`),
     
   createUser: (userData) => 
-    apiRequest('/users', 'POST', userData),
+    apiRequest('/auth/register', 'POST', userData),
     
   updateUser: (userId, userData) => 
-    apiRequest(`/users/${userId}`, 'PUT', userData),
+    apiRequest(`/admin/users/${userId}`, 'PATCH', userData),
     
   deleteUser: (userId) => 
-    apiRequest(`/users/${userId}`, 'DELETE')
+    apiRequest(`/admin/users/${userId}`, 'DELETE')
 };
 
 // Emotion Analysis API
@@ -198,7 +233,7 @@ export const modelAPI = {
     apiRequest(`/models/${modelId}/performance`)
 };
 
-export default {
+const api = {
   auth: authAPI,
   user: userAPI,
   emotion: emotionAPI,
@@ -208,3 +243,5 @@ export default {
   therapist: therapistAPI,
   model: modelAPI
 };
+
+export default api;

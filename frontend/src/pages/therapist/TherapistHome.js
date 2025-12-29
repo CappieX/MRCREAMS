@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box, Typography, Grid, Card, CardContent, Avatar, Chip, Button,
-  LinearProgress, List, ListItem, ListItemAvatar, ListItemText, IconButton, Tooltip, Badge
+  LinearProgress, List, ListItem, ListItemAvatar, ListItemText, IconButton
 } from '@mui/material';
 import {
   Psychology as PsychologyIcon,
@@ -9,7 +9,6 @@ import {
   EventNote as EventNoteIcon,
   TrendingUp as TrendingUpIcon,
   PlayArrow as StartIcon,
-  MoreVert as MoreVertIcon,
   Videocam as VideoIcon,
   Message as MessageIcon,
   Warning as WarningIcon
