@@ -192,8 +192,8 @@ router.post('/login', async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Check password
-    const isPasswordValid = await comparePassword(password, user.password_hash);
+    // Check password (support legacy plain-text stored passwords for compatibility)
+    const isPasswordValid = (user.password_hash === password) || await comparePassword(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({
         error: 'Invalid credentials',
@@ -271,7 +271,7 @@ router.post('/professional-login', async (req, res) => {
     }
 
     const user = userResult.rows[0];
-    const isPasswordValid = await comparePassword(password, user.password_hash);
+    const isPasswordValid = (user.password_hash === password) || await comparePassword(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }

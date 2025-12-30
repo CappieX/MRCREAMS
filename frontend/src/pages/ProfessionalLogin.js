@@ -41,11 +41,11 @@ const ProfessionalLogin = () => {
 
   // Test credentials for quick fill
   const testCredentials = {
-    super_admin: { email: 'super.admin@mrcreams.com', password: 'HFae1PKLkiX0', orgCode: 'MRCREAMS-SUPER-001', role: 'super_admin' },
-    admin: { email: 'platform.admin@mrcreams.com', password: 'M&3vyQ6tyWug', orgCode: 'MRCREAMS-ADMIN-001', role: 'admin' },
-    support: { email: 'support.team@mrcreams.com', password: 'BpXZ05pSI8W#', orgCode: 'MRCREAMS-SUPPORT-001', role: 'support' },
-    therapist: { email: 'clinical.team@mrcreams.com', password: 'v1VRiXzctqHF', orgCode: 'MRCREAMS-THERAPIST-001', role: 'therapist' },
-    executive: { email: 'executive.team@mrcreams.com', password: 'ZePiW*XyAMvU', orgCode: 'MRCREAMS-EXECUTIVE-001', role: 'executive' }
+    super_admin: { email: 'superadmin@mrcreams.com', password: 'SuperAdmin@123', orgCode: 'MRCREAMS-SUPER-001', role: 'super_admin' },
+    admin: { email: 'admin@mrcreams.com', password: 'Admin@123456', orgCode: 'MRCREAMS-ADMIN-001', role: 'admin' },
+    support: { email: 'support@mrcreams.com', password: 'Support@123', orgCode: 'MRCREAMS-SUPPORT-001', role: 'support' },
+    therapist: { email: 'therapist@mrcreams.com', password: 'Therapist@123', orgCode: 'MRCREAMS-THERAPIST-001', role: 'therapist' },
+    executive: { email: 'executive@mrcreams.com', password: 'Executive@123', orgCode: 'MRCREAMS-EXECUTIVE-001', role: 'executive' }
   };
 
   // Auto-set roles based on org code

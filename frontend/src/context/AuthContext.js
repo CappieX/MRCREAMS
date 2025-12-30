@@ -58,13 +58,15 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password, organizationCode, role) => {
     try {
       console.log('🔐 AUTHCONTEXT LOGIN DEBUG - Starting login process');
-      console.log('📧 Login credentials:', { email, organizationCode, role });
+      const normalizedEmail = (email || '').trim().toLowerCase();
+      const normalizedPassword = (password || '').trim();
+      console.log('📧 Login credentials:', { email: normalizedEmail, organizationCode, role });
       
       // Use relative URL when proxy is configured
       const response = await fetch('/api/auth/professional-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, organizationCode, role }),
+        body: JSON.stringify({ email: normalizedEmail, password: normalizedPassword, organizationCode, role }),
       });
 
       console.log('📡 Response status:', response.status, response.statusText);

@@ -217,7 +217,19 @@ class SecurityService {
    * Validate JSON payload size
    */
   static validatePayloadSize(payload, maxSize = 1024 * 1024) { // 1MB default
-    const payloadSize = JSON.stringify(payload).length;
+    let serialized;
+    try {
+      if (payload === undefined || payload === null) {
+        serialized = '';
+      } else {
+        serialized = JSON.stringify(payload);
+      }
+    } catch (e) {
+      // Fallback for circular structures or non-serializable payloads
+      serialized = String(payload ?? '');
+    }
+
+    const payloadSize = typeof serialized === 'string' ? serialized.length : 0;
     return {
       isValid: payloadSize <= maxSize,
       size: payloadSize,

@@ -34,7 +34,14 @@ const TicketDetail = () => {
   const fetchTicket = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/v1/support/tickets/${id}`);
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const response = await axios.get(`/api/v1/support/tickets/${id}`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          'API-Version': 'v1'
+        },
+        withCredentials: true
+      });
       setTicket(response.data);
     } catch (err) {
       setError('Failed to load ticket');
@@ -50,9 +57,16 @@ const TicketDetail = () => {
 
     try {
       setSubmitting(true);
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       await axios.post(`/api/v1/support/tickets/${id}/comments`, {
         content: comment,
         is_internal: false
+      }, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          'API-Version': 'v1'
+        },
+        withCredentials: true
       });
       setComment('');
       await fetchTicket(); // Refresh ticket data
@@ -66,7 +80,14 @@ const TicketDetail = () => {
 
   const handleStatusChange = async (newStatus) => {
     try {
-      await axios.put(`/api/v1/support/tickets/${id}`, { status: newStatus });
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      await axios.put(`/api/v1/support/tickets/${id}`, { status: newStatus }, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          'API-Version': 'v1'
+        },
+        withCredentials: true
+      });
       await fetchTicket();
     } catch (err) {
       setError('Failed to update status');
@@ -76,7 +97,14 @@ const TicketDetail = () => {
 
   const handlePriorityChange = async (newPriority) => {
     try {
-      await axios.put(`/api/v1/support/tickets/${id}`, { priority: newPriority });
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      await axios.put(`/api/v1/support/tickets/${id}`, { priority: newPriority }, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          'API-Version': 'v1'
+        },
+        withCredentials: true
+      });
       await fetchTicket();
     } catch (err) {
       setError('Failed to update priority');
