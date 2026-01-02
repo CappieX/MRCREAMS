@@ -45,13 +45,15 @@ const ProfessionalLogin = () => {
     admin: { email: 'admin@mrcreams.com', password: 'Admin@123456', orgCode: 'MRCREAMS-ADMIN-001', role: 'admin' },
     support: { email: 'support@mrcreams.com', password: 'Support@123', orgCode: 'MRCREAMS-SUPPORT-001', role: 'support' },
     therapist: { email: 'therapist@mrcreams.com', password: 'Therapist@123', orgCode: 'MRCREAMS-THERAPIST-001', role: 'therapist' },
-    executive: { email: 'executive@mrcreams.com', password: 'Executive@123', orgCode: 'MRCREAMS-EXECUTIVE-001', role: 'executive' }
+    executive: { email: 'executive@mrcreams.com', password: 'Executive@123', orgCode: 'MRCREAMS-EXECUTIVE-001', role: 'executive' },
+    platform_admin: { email: 'platform@mrcreams.com', password: 'PlatformAdmin123!', orgCode: 'MRCREAMS-PLATFORM-001', role: 'platform_admin' }
   };
 
   // Auto-set roles based on org code
   useEffect(() => {
     const orgConfig = {
       'MRCREAMS-SUPER-001': ['super_admin'],
+      'MRCREAMS-PLATFORM-001': ['platform_admin'],
       'MRCREAMS-ADMIN-001': ['admin'],
       'MRCREAMS-SUPPORT-001': ['support'],
       'MRCREAMS-THERAPIST-001': ['therapist'],
@@ -64,7 +66,7 @@ const ProfessionalLogin = () => {
         setFormData(prev => ({ ...prev, role: orgConfig[formData.organizationCode][0] }));
       }
     } else {
-      setAvailableRoles(['super_admin', 'admin', 'support', 'executive', 'therapist']);
+      setAvailableRoles(['super_admin', 'platform_admin', 'admin', 'support', 'executive', 'therapist']);
     }
   }, [formData.organizationCode]);
 
@@ -103,9 +105,11 @@ const ProfessionalLogin = () => {
           support: '/dashboard/support',
           executive: '/dashboard/executive',
           therapist: '/dashboard/therapist',
+          platform_admin: '/dashboard/platform-admin',
           it_admin: '/dashboard/it-admin'
         };
-        navigate(redirectPaths[result.user.role] || '/dashboard');
+        const roleKey = result.user?.role || result.user?.userType;
+        navigate(redirectPaths[roleKey] || '/dashboard');
       } else {
         console.log('❌ Login failed with error:', result.error);
         setError(result.error || 'Login failed');
@@ -154,7 +158,7 @@ const ProfessionalLogin = () => {
 
         {/* Quick Test Buttons - SIMPLIFIED */}
         <Box sx={{ mb: 3, display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {['super_admin', 'admin', 'support', 'therapist', 'executive'].map(role => (
+          {['super_admin', 'platform_admin', 'admin', 'support', 'therapist', 'executive'].map(role => (
             <Button key={role} size="small" variant="outlined" onClick={() => quickFill(role)}>
               {role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
             </Button>

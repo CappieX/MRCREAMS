@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       // Use relative URL when proxy is configured
       const response = await fetch('/api/auth/professional-login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'API-Version': 'v1' },
         body: JSON.stringify({ email: normalizedEmail, password: normalizedPassword, organizationCode, role }),
       });
 
@@ -80,11 +80,17 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.log('❌ Server response:', errorText);
+        let parsedError = null;
+        try {
+          parsedError = await response.json();
+        } catch (_) {
+          // Fallback to text when JSON parsing fails
+        }
+        const serverMessage = parsedError?.error || parsedError?.message || response.statusText;
+        console.log('❌ Server response:', parsedError || serverMessage);
         return {
           success: false,
-          error: `Server error: ${response.status} - ${errorText}`
+          error: serverMessage ? `Server error: ${response.status} - ${serverMessage}` : `Server error: ${response.status}`
         };
       }
 

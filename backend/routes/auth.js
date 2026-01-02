@@ -279,6 +279,7 @@ router.post('/professional-login', async (req, res) => {
     if (organizationCode && role) {
       const orgRoleMapping = {
         'MRCREAMS-SUPER-001': ['super_admin'],
+        'MRCREAMS-PLATFORM-001': ['platform_admin'],
         'MRCREAMS-ADMIN-001': ['admin'],
         'MRCREAMS-SUPPORT-001': ['support'],
         'MRCREAMS-THERAPIST-001': ['therapist'],
@@ -298,13 +299,23 @@ router.post('/professional-login', async (req, res) => {
       }
     }
 
-    const session = await createUserSession(user.id, req.ip, req.get('User-Agent'));
     const token = generateToken({
       userId: user.id,
       email: user.email,
       userType: user.user_type,
       organizationId: user.organization_id
     });
+
+    let session;
+    try {
+      session = await createUserSession(user.id, req.ip, req.get('User-Agent'));
+    } catch (sessionError) {
+      console.error('Session creation failed during professional login:', sessionError);
+      session = {
+        refreshToken: null,
+        expiresAt: null
+      };
+    }
 
     return res.json({
       success: true,

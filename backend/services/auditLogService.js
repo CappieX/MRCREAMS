@@ -137,6 +137,42 @@ class AuditLogService {
   }
 
   /**
+   * Get all audit logs (for super admin/platform admin)
+   */
+  async getAllLogs(limit = 100, offset = 0) {
+    try {
+      const result = await query(
+        `SELECT al.*, u.email, u.first_name, u.last_name
+         FROM audit_logs al
+         LEFT JOIN users u ON al.user_id = u.id
+         ORDER BY al.created_at DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+
+      return result.rows.map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        userEmail: row.email,
+        userName: row.user_id ? `${row.first_name} ${row.last_name}` : 'System',
+        action: row.action,
+        resourceType: row.resource_type,
+        resourceId: row.resource_id,
+        oldData: row.old_data ? JSON.parse(row.old_data) : null,
+        newData: row.new_data ? JSON.parse(row.new_data) : null,
+        details: row.details ? JSON.parse(row.details) : {},
+        ipAddress: row.ip_address,
+        userAgent: row.user_agent,
+        success: row.success,
+        createdAt: row.created_at
+      }));
+    } catch (error) {
+      console.error('Get all audit logs error:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get audit logs for a user
    */
   async getUserAuditLogs(userId, limit = 100, offset = 0) {

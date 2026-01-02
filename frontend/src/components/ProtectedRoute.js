@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { Box, CircularProgress } from '@mui/material';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false, allowedRoles = [] }) => {
   const { user: currentUser, loading } = useAuth();
   const { needsOnboarding } = useOnboarding();
 
@@ -25,8 +25,20 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/onboarding" />;
   }
 
-  if (adminOnly && !currentUser.is_admin) {
-    return <Navigate to="/" />;
+  // Check allowed roles if provided
+  const role = currentUser.user_type || currentUser.userType;
+  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+    // If user has a dashboard, redirect there, otherwise home
+    return <Navigate to="/dashboard" />;
+  }
+
+  // Backward compatibility for adminOnly
+  if (adminOnly) {
+    const admins = ['admin', 'super_admin', 'platform_admin', 'it_admin'];
+    // Check user_type or legacy is_admin flag
+    if (!admins.includes(role) && !currentUser.is_admin) {
+      return <Navigate to="/" />;
+    }
   }
 
   return children;

@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
+const auditLogService = require('../services/auditLogService');
 
 // Secret key for JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'wcreams_secret_key';
@@ -80,6 +81,19 @@ router.post('/register', async (req, res) => {
       );
     }
 
+    // Log registration
+    await auditLogService.logAuthEvent(
+      user.id,
+      'REGISTER',
+      true,
+      {
+        email,
+        userType: user_type,
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent')
+      }
+    );
+
     await client.query('COMMIT');
 
     // Generate token
@@ -132,6 +146,15 @@ router.post('/login', async (req, res) => {
 
     if (userResult.rows.length === 0) {
       console.log('❌ User not found in database');
+      
+      // Log failed login (unknown user)
+      await auditLogService.logAuthEvent(
+        null, 
+        'LOGIN_FAILED', 
+        false, 
+        { email, reason: 'User not found', ipAddress: req.ip, userAgent: req.get('user-agent') }
+      );
+
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
@@ -151,6 +174,15 @@ router.post('/login', async (req, res) => {
 
     if (!validPassword) {
       console.log('❌ Invalid password for user:', user.email);
+
+      // Log failed login (wrong password)
+      await auditLogService.logAuthEvent(
+        user.id,
+        'LOGIN_FAILED',
+        false,
+        { email, reason: 'Invalid password', ipAddress: req.ip, userAgent: req.get('user-agent') }
+      );
+
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
@@ -160,6 +192,7 @@ router.post('/login', async (req, res) => {
       // Validate organization code format and role mapping
       const orgRoleMapping = {
         'MRCREAMS-SUPER-001': ['super_admin'],
+        'MRCREAMS-PLATFORM-001': ['platform_admin'],
         'MRCREAMS-ADMIN-001': ['admin'],
         'MRCREAMS-SUPPORT-001': ['support'],
         'MRCREAMS-THERAPIST-001': ['therapist'],
@@ -192,6 +225,14 @@ router.post('/login', async (req, res) => {
       { id: user.id, email: user.email, user_type: user.user_type },
       JWT_SECRET,
       { expiresIn: '24h' }
+    );
+
+    // Log successful login
+    await auditLogService.logAuthEvent(
+      user.id,
+      'LOGIN_SUCCESS',
+      true,
+      { email, role: user.user_type, ipAddress: req.ip, userAgent: req.get('user-agent') }
     );
 
     console.log('✅ Login successful for user:', user.email);

@@ -36,6 +36,7 @@ import ITAdminDashboard from './pages/dashboard/ITAdminDashboard';
 import SupportDashboard from './pages/dashboard/SupportDashboard';
 import ExecutiveDashboard from './pages/dashboard/ExecutiveDashboard';
 import TherapistDashboard from './pages/dashboard/TherapistDashboard';
+import PlatformAdminDashboard from './pages/dashboard/PlatformAdminDashboard';
 
 // Super Admin Sub-pages
 import SuperAdminHome from './pages/super-admin/SuperAdminHome';
@@ -53,6 +54,12 @@ import SupportEscalations from './pages/super-admin/SupportEscalations';
 import TherapistHome from './pages/therapist/TherapistHome';
 import MySessions from './pages/therapist/MySessions';
 import MyClients from './pages/therapist/MyClients';
+
+// Platform Admin Sub-pages
+import PlatformAdminHome from './pages/platform-admin/PlatformAdminHome';
+import SystemHealth from './pages/platform-admin/SystemHealth';
+import AuditLogs from './pages/platform-admin/AuditLogs';
+import Configuration from './pages/platform-admin/Configuration';
 
 // Support Sub-pages
 import SupportHome from './pages/support/SupportHome';
@@ -108,6 +115,16 @@ const AuthenticatedLayout = () => {
                 <Route path="integrations" element={<IntegrationsManagement />} />
                 <Route path="settings" element={<SystemSettings />} />
                 <Route path="support" element={<SupportEscalations />} />
+              </Route>
+              <Route path="/dashboard/platform-admin" element={
+                <ProtectedRoute allowedRoles={['platform_admin']}>
+                  <PlatformAdminDashboard />
+                </ProtectedRoute>
+              }>
+                <Route index element={<PlatformAdminHome />} />
+                <Route path="health" element={<SystemHealth />} />
+                <Route path="logs" element={<AuditLogs />} />
+                <Route path="config" element={<Configuration />} />
               </Route>
               <Route path="/dashboard/admin" element={
                 <ProtectedRoute allowedRoles={['admin', 'super_admin', 'it_admin']}>

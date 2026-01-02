@@ -21,7 +21,7 @@ import {
   CheckCircle
 } from '@mui/icons-material';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = '/api';
 
 const generalTips = [
   "Schedule regular check-ins to discuss concerns before they escalate",

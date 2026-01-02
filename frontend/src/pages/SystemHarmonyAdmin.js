@@ -54,11 +54,11 @@ const SystemHarmonyAdmin = () => {
         };
         
         // Fetch users
-        const usersResponse = await axios.get('http://localhost:5001/api/admin/users', config);
+        const usersResponse = await axios.get('/api/admin/users', config);
         setUsers(usersResponse.data);
         
         // Fetch conflicts
-        const conflictsResponse = await axios.get('http://localhost:5001/api/conflicts', config);
+        const conflictsResponse = await axios.get('/api/conflicts', config);
         setConflicts(conflictsResponse.data);
         
         // Calculate stats

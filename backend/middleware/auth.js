@@ -45,7 +45,7 @@ const authenticateToken = async (req, res, next) => {
     const user = userResult.rows[0];
 
     // Check if email is verified (for non-admin users)
-    if (!user.email_verified && !['super_admin', 'admin', 'it_admin'].includes(user.user_type)) {
+    if (!user.email_verified && !['super_admin', 'admin', 'it_admin', 'platform_admin'].includes(user.user_type)) {
       return res.status(401).json({ 
         error: 'Email verification required',
         code: 'EMAIL_NOT_VERIFIED'
@@ -63,10 +63,11 @@ const authenticateToken = async (req, res, next) => {
       organizationCode: user.organization_code,
       onboardingCompleted: user.onboarding_completed,
       emailVerified: user.email_verified,
-      isAdmin: ['super_admin', 'admin', 'it_admin'].includes(user.user_type),
+      isAdmin: ['super_admin', 'admin', 'it_admin', 'platform_admin'].includes(user.user_type),
       isSuperAdmin: user.user_type === 'super_admin',
+      isPlatformAdmin: user.user_type === 'platform_admin',
       isTherapist: user.user_type === 'therapist',
-      isSupport: ['support', 'super_admin', 'admin'].includes(user.user_type)
+      isSupport: ['support', 'super_admin', 'admin', 'platform_admin'].includes(user.user_type)
     };
 
     next();

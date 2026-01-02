@@ -19,12 +19,15 @@ const integrationRouter = require('./routes/integrationRoutes');
 const hipaaComplianceRouter = require('./routes/hipaaComplianceRoutes');
 const gdprComplianceRouter = require('./routes/gdprComplianceRoutes');
 const securityRouter = require('./routes/securityRoutes');
+const metricsRouter = require('./routes/metricsRoutes');
+const platformRouter = require('./routes/platformRoutes');
 
 // Import middleware
 const { authenticateToken } = require('./middleware/auth');
 const { configureSecurityHeaders, requestLogging, securityEventLogging, ipSecurity, userAgentValidation, requestSizeLimit, requestFrequencyLimit, httpsEnforcement, corsSecurity, apiVersioning, errorHandling, securityMonitoring } = require('./middleware/security');
 const { sanitizeInput, securityValidation, validatePayloadSize } = require('./middleware/validation');
 const SecurityService = require('./services/securityService');
+const monitoringService = require('./services/monitoringService');
 
 const app = express();
 // Default to 5002 for local dev (macOS often has AirPlay/AirTunes bound to :5000).
@@ -83,8 +86,21 @@ const authLimiter = rateLimit({
 });
 
 // CORS configuration
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+]);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -134,6 +150,8 @@ app.use('/api/integrations', integrationRouter);
 app.use('/api/hipaa', hipaaComplianceRouter);
 app.use('/api/gdpr', gdprComplianceRouter);
 app.use('/api/security', securityRouter);
+app.use('/api/platform', platformRouter);
+app.use('/metrics', metricsRouter);
 
 // Protected routes middleware - require valid JWT for private APIs
 const protectRoute = authenticateToken;

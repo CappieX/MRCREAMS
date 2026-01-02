@@ -308,7 +308,15 @@ const httpsEnforcement = (req, res, next) => {
  */
 const corsSecurity = (req, res, next) => {
   const origin = req.get('Origin');
-  const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'];
+  const defaultDevOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+  ];
+  const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : defaultDevOrigins;
   
   if (origin && !allowedOrigins.includes(origin)) {
     SecurityService.logSecurityEvent('cors_violation', {
