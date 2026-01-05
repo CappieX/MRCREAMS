@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Grid, Box, Button, Divider, List, ListItem, ListItemText, CircularProgress } from '@mui/material';
+import { Typography, Grid, Box, Button, Divider, List, ListItem, ListItemText, CircularProgress, Chip } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { BarChart as ChartIcon, Add as AddIcon, Insights as InsightsIcon, Psychology as PsychologyIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -15,8 +15,10 @@ import AdvancedRecommendationEngine from '../components/AdvancedRecommendationEn
 import CoupleCollaborationHub from '../components/CoupleCollaborationHub';
 import AdvancedAnalyticsSuite from '../components/AdvancedAnalyticsSuite';
 import HarmonyGamificationSystem from '../components/HarmonyGamificationSystem';
+import { useAuth } from '../context/AuthContext';
 
 function Dashboard() {
+  const { user } = useAuth();
   const [conflicts, setConflicts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -25,11 +27,19 @@ function Dashboard() {
     averageDuration: 0,
     topReason: 'N/A'
   });
+  const [summary, setSummary] = useState({
+    emotionTrends: { totalCheckins: 0 },
+    conflictAnalytics: { totalConflicts: 0, resolutionRate: 0 },
+    progressMetrics: { progressScore: 0 },
+    behavioralInsights: { insights: [] }
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/conflicts');
+        const token = localStorage.getItem('authToken');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const response = await axios.get('/api/conflicts', config);
         setConflicts(response.data.slice(0, 5)); // Get only the 5 most recent conflicts
         
         // Calculate stats
@@ -61,6 +71,19 @@ function Dashboard() {
             topReason
           });
         }
+        // Fetch analytics summary
+        try {
+          const summaryRes = await axios.get('/api/analytics/dashboard/summary', config);
+          const data = summaryRes.data?.data || summaryRes.data || {};
+          setSummary({
+            emotionTrends: data.emotionTrends || { totalCheckins: 0 },
+            conflictAnalytics: data.conflictAnalytics || { totalConflicts: 0, resolutionRate: 0 },
+            progressMetrics: data.progressMetrics || { progressScore: 0 },
+            behavioralInsights: data.behavioralInsights || { insights: [] }
+          });
+        } catch (err) {
+          console.error('Failed to fetch analytics summary:', err);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -81,6 +104,11 @@ function Dashboard() {
           <Typography variant="body1" color="text.secondary">
             Welcome to MR.CREAMS - Smart healing for modern relationships through intelligent conflict analysis and emotional insight.
           </Typography>
+          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip label={user?.name || user?.email || 'User'} color="primary" variant="outlined" />
+            <Chip label={(user?.user_type || 'individual').replace('_',' ').toUpperCase()} color="secondary" variant="outlined" />
+            {user?.onboarding_completed && <Chip label="Onboarding Complete" color="success" />}
+          </Box>
         </Box>
         <Button
           variant="contained"
@@ -158,6 +186,48 @@ function Dashboard() {
             ) : (
               <Typography variant="h6" align="center" sx={{ mt: 2, fontWeight: 'medium' }}>
                 {stats.topReason}
+              </Typography>
+            )}
+          </StyledCard>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={4}>
+          <StyledCard title="Emotion Check-ins">
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : (
+              <Typography variant="h4" align="center" sx={{ mt: 1, fontWeight: 'bold' }}>
+                {summary.emotionTrends.totalCheckins || 0}
+              </Typography>
+            )}
+          </StyledCard>
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <StyledCard title="Conflicts Resolved">
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : (
+              <Typography variant="h4" align="center" sx={{ mt: 1, fontWeight: 'bold' }}>
+                {Math.round((summary.conflictAnalytics.resolutionRate || 0) * 100)}%
+              </Typography>
+            )}
+          </StyledCard>
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <StyledCard title="Progress Score">
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : (
+              <Typography variant="h4" align="center" sx={{ mt: 1, fontWeight: 'bold' }}>
+                {summary.progressMetrics.progressScore || 0}%
               </Typography>
             )}
           </StyledCard>
