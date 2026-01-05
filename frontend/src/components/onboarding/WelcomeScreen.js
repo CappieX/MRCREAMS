@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
 import './WelcomeScreen.css';
 
-const WelcomeScreen = ({ onboardingData, onFinalComplete, isLastStep = true }) => {
+const WelcomeScreen = ({ onboardingData, onComplete, isLastStep = true }) => {
   const { userType, basicInfo } = onboardingData;
   const userName = basicInfo?.fullName?.split(' ')[0] || 'there';
 
   // Debug logging
   useEffect(() => {
     console.log('WelcomeScreen mounted with props:', {
-      hasOnFinalComplete: !!onFinalComplete,
+      hasOnComplete: !!onComplete,
       onboardingData: onboardingData
     });
-  }, [onFinalComplete, onboardingData]);
+  }, [onComplete, onboardingData]);
 
   const welcomeMessages = {
     single_man: {
@@ -96,11 +96,11 @@ const WelcomeScreen = ({ onboardingData, onFinalComplete, isLastStep = true }) =
   const handleGetStarted = () => {
     console.log('Start Your Journey clicked');
 
-    if (typeof onFinalComplete === 'function') {
-      console.log('Calling onFinalComplete with data:', onboardingData);
-      onFinalComplete(onboardingData);
+    if (typeof onComplete === 'function') {
+      console.log('Calling onComplete with data:', onboardingData);
+      onComplete(onboardingData);
     } else {
-      console.error('onFinalComplete is not a function:', onFinalComplete);
+      console.error('onComplete is not a function:', onComplete);
       // Fallback: Redirect to dashboard
       window.location.href = '/dashboard';
     }

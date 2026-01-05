@@ -41,14 +41,16 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ email, password, ...userData })
       });
 
-      if (response.ok) {
-        const { user: newUser, token } = await response.json();
-        localStorage.setItem('authToken', token);
-        setUser(newUser);
-        return newUser;
-      } else {
-        throw new Error('Registration failed');
+      const contentType = response.headers.get('content-type');
+      const data = contentType && contentType.includes('application/json') ? await response.json() : null;
+      if (!response.ok) {
+        const msg = data?.error || data?.message || 'Registration failed';
+        throw new Error(msg);
       }
+      const { user: newUser, token } = data || {};
+      if (token) localStorage.setItem('authToken', token);
+      setUser(newUser);
+      return newUser;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -127,7 +129,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updates) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch('/api/auth/user/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
