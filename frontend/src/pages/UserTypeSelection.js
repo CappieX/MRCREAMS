@@ -26,10 +26,10 @@ const UserTypeSelection = () => {
   const theme = useTheme();
 
   const handleUserTypeSelection = (userType) => {
-    if (userType === 'end_user') {
-      navigate('/register/user');
-    } else if (userType === 'company_user') {
-      navigate('/register/company');
+    if (userType === 'client') {
+      navigate('/register');
+    } else if (userType === 'professional') {
+      navigate('/pro-login'); // Or /login/professional if you prefer
     }
   };
 
@@ -111,7 +111,7 @@ const UserTypeSelection = () => {
                 },
                 transition: 'all 0.3s ease'
               }}
-              onClick={() => handleUserTypeSelection('end_user')}
+              onClick={() => handleUserTypeSelection('client')}
             >
               <CardContent sx={{ textAlign: 'center', p: 0 }}>
                 <Box
@@ -198,7 +198,7 @@ const UserTypeSelection = () => {
                 },
                 transition: 'all 0.3s ease'
               }}
-              onClick={() => handleUserTypeSelection('company_user')}
+              onClick={() => handleUserTypeSelection('professional')}
             >
               <CardContent sx={{ textAlign: 'center', p: 0 }}>
                 <Box

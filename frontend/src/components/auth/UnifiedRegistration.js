@@ -141,6 +141,35 @@ const UnifiedRegistration = () => {
     }
   };
 
+  const validatePassword = (password) => {
+    const errors = [];
+    
+    if (password.length < 8) {
+      errors.push('at least 8 characters');
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push('an uppercase letter');
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push('a lowercase letter');
+    }
+    if (!/\d/.test(password)) {
+      errors.push('a number');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push('a special character');
+    }
+    
+    if (errors.length === 0) {
+      return { isValid: true };
+    }
+    
+    return {
+      isValid: false,
+      error: `Password must contain ${errors.join(', ')}`
+    };
+  };
+
   const validateStep = (step) => {
     setError('');
 
@@ -153,8 +182,10 @@ const UnifiedRegistration = () => {
         setError('Passwords do not match');
         return false;
       }
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
+      // Validate password complexity (must match backend requirements)
+      const passwordValidation = validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        setError(passwordValidation.error);
         return false;
       }
     }

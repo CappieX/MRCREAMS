@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Login from '../Login';
 import { AuthProvider } from '../../context/AuthContext';
@@ -38,9 +38,11 @@ describe('Login Component', () => {
   test('renders login form correctly', () => {
     renderLoginComponent();
     
-    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in as user/i })).toBeInTheDocument();
+    const userForm = screen.getByRole('main');
+
+    expect(within(userForm).getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(within(userForm).getByLabelText(/^Password/i)).toBeInTheDocument();
+    expect(within(userForm).getByRole('button', { name: /sign in as user/i })).toBeInTheDocument();
     expect(screen.getByText(/create account/i)).toBeInTheDocument();
     expect(screen.getByText(/professional login/i)).toBeInTheDocument();
   });
@@ -48,8 +50,10 @@ describe('Login Component', () => {
   test('handles form input changes', () => {
     renderLoginComponent();
     
-    const emailInput = screen.getByLabelText(/email address/i);
-    const passwordInput = screen.getByLabelText(/password/i);
+    const userForm = screen.getByRole('main');
+
+    const emailInput = within(userForm).getByLabelText(/email address/i);
+    const passwordInput = within(userForm).getByLabelText(/^Password/i);
     
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
@@ -61,10 +65,12 @@ describe('Login Component', () => {
   test('toggles password visibility', () => {
     renderLoginComponent();
     
-    const passwordInput = screen.getByLabelText(/password/i);
+    const userForm = screen.getByRole('main');
+
+    const passwordInput = within(userForm).getByLabelText(/^Password/i);
     expect(passwordInput.type).toBe('password');
     
-    const visibilityToggle = screen.getByLabelText(/toggle password visibility/i);
+    const visibilityToggle = within(userForm).getByLabelText(/toggle password visibility/i);
     fireEvent.click(visibilityToggle);
     
     expect(passwordInput.type).toBe('text');
@@ -76,9 +82,11 @@ describe('Login Component', () => {
   test('submits form with valid credentials', async () => {
     renderLoginComponent();
     
-    const emailInput = screen.getByLabelText(/email address/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    const submitButton = screen.getByRole('button', { name: /sign in as user/i });
+    const userForm = screen.getByRole('main');
+
+    const emailInput = within(userForm).getByLabelText(/email address/i);
+    const passwordInput = within(userForm).getByLabelText(/^Password/i);
+    const submitButton = within(userForm).getByRole('button', { name: /sign in as user/i });
     
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
@@ -93,9 +101,11 @@ describe('Login Component', () => {
   test('shows error message with invalid credentials', async () => {
     renderLoginComponent();
     
-    const emailInput = screen.getByLabelText(/email address/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    const submitButton = screen.getByRole('button', { name: /sign in as user/i });
+    const userForm = screen.getByRole('main');
+
+    const emailInput = within(userForm).getByLabelText(/email address/i);
+    const passwordInput = within(userForm).getByLabelText(/^Password/i);
+    const submitButton = within(userForm).getByRole('button', { name: /sign in as user/i });
     
     fireEvent.change(emailInput, { target: { value: 'wrong@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });

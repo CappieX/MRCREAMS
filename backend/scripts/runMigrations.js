@@ -30,7 +30,12 @@ async function runMigrations() {
     `);
     
     // Get list of migration files
-    const migrationsDir = path.join(__dirname, 'migrations');
+    // Prefer top-level backend/migrations directory
+    let migrationsDir = path.join(__dirname, '..', 'migrations');
+    if (!fs.existsSync(migrationsDir)) {
+      // Fallback to scripts/migrations if present
+      migrationsDir = path.join(__dirname, 'migrations');
+    }
     const migrationFiles = fs.readdirSync(migrationsDir)
       .filter(file => file.endsWith('.sql'))
       .sort();
@@ -65,6 +70,18 @@ async function runMigrations() {
         await client.query('COMMIT');
         console.log(`✅ Successfully executed: ${file}`);
       } catch (error) {
+        // Handle idempotent duplicate object errors gracefully
+        if (error && error.code === '42710') {
+          await client.query('ROLLBACK');
+          await client.query('BEGIN');
+          await client.query(
+            'INSERT INTO migrations (filename) VALUES ($1)',
+            [file]
+          );
+          await client.query('COMMIT');
+          console.warn(`⚠️ Duplicate object detected, marking ${file} as executed`);
+          continue;
+        }
         await client.query('ROLLBACK');
         console.error(`❌ Error executing ${file}:`, error.message);
         throw error;

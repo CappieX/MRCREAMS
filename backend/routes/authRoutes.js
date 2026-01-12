@@ -274,23 +274,113 @@ router.get('/verify', authenticateToken, async (req, res) => {
   }
 });
 
-// Get current user
+// Get current user (with metadata)
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const userResult = await pool.query(
-      'SELECT id, email, name, user_type, onboarding_completed, email_verified FROM users WHERE id = $1',
+    const result = await pool.query(
+      `SELECT u.id, u.email, u.name, u.user_type, u.onboarding_completed, u.email_verified,
+              um.metadata
+       FROM users u
+       LEFT JOIN user_metadata um ON u.id = um.user_id
+       WHERE u.id = $1`,
       [req.user.id]
     );
 
-    if (userResult.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult.rows[0];
+    const row = result.rows[0];
+    const user = {
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      user_type: row.user_type,
+      onboarding_completed: row.onboarding_completed,
+      email_verified: row.email_verified,
+      metadata: row.metadata || {}
+    };
     res.json({ user });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update current user profile (supports onboarding progress and completion)
+router.put('/user/profile', authenticateToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const userId = req.user.id;
+    const {
+      onboardingCompleted,
+      onboardingCompletedAt,
+      onboardingStep,
+      userType,
+      relationshipContext,
+      goalsPreferences,
+      emotionalSnapshot,
+      // Flattened basic info may include name, phone, etc.
+      name,
+      phone,
+      timezone,
+      language,
+      preferences,
+      onboardingData
+    } = req.body;
+
+    await client.query('BEGIN');
+
+    const updates = [];
+    const values = [];
+    let idx = 1;
+
+    if (typeof name === 'string') { updates.push(`name = $${idx++}`); values.push(name); }
+    if (typeof userType === 'string') { updates.push(`user_type = $${idx++}`); values.push(userType); }
+    if (typeof onboardingCompleted === 'boolean') { updates.push(`onboarding_completed = $${idx++}`); values.push(onboardingCompleted); }
+    if (onboardingCompletedAt) { updates.push(`onboarding_completed_at = $${idx++}`); values.push(new Date(onboardingCompletedAt)); }
+    if (typeof phone === 'string') { updates.push(`phone = $${idx++}`); values.push(phone); }
+    if (typeof timezone === 'string') { updates.push(`timezone = $${idx++}`); values.push(timezone); }
+    if (typeof language === 'string') { updates.push(`language = $${idx++}`); values.push(language); }
+    if (preferences) { updates.push(`preferences = $${idx++}`); values.push(JSON.stringify(preferences)); }
+
+    if (updates.length > 0) {
+      values.push(userId);
+      await client.query(`UPDATE users SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${idx}`, values);
+    }
+
+    const metadataPayload = {
+      onboardingStep: typeof onboardingStep === 'number' ? onboardingStep : undefined,
+      relationshipContext,
+      goalsPreferences,
+      emotionalSnapshot,
+      ...(onboardingData || {})
+    };
+
+    // Clean undefined keys
+    Object.keys(metadataPayload).forEach(k => metadataPayload[k] === undefined && delete metadataPayload[k]);
+
+    if (Object.keys(metadataPayload).length > 0) {
+      const metaRes = await client.query('UPDATE user_metadata SET metadata = $1 WHERE user_id = $2', [JSON.stringify(metadataPayload), userId]);
+      if (metaRes.rowCount === 0) {
+        await client.query('INSERT INTO user_metadata (user_id, metadata) VALUES ($1, $2)', [userId, JSON.stringify(metadataPayload)]);
+      }
+    }
+
+    await client.query('COMMIT');
+
+    const refreshed = await client.query(
+      'SELECT id, email, name, user_type, onboarding_completed, email_verified FROM users WHERE id = $1',
+      [userId]
+    );
+
+    res.json(refreshed.rows[0]);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Profile update failed' });
+  } finally {
+    client.release();
   }
 });
 

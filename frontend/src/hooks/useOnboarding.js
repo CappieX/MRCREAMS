@@ -7,9 +7,15 @@ export const useOnboarding = () => {
   const [onboardingStep, setOnboardingStep] = useState(0);
 
   useEffect(() => {
-    if (user && !user.onboardingCompleted) {
-      setNeedsOnboarding(true);
-      // Restore previous step if exists
+    if (!user) {
+      setNeedsOnboarding(false);
+      return;
+    }
+    // Only send users to onboarding if the flag is explicitly false.
+    // Existing users without the flag should NOT be redirected.
+    const shouldOnboard = user.onboardingCompleted === false;
+    setNeedsOnboarding(shouldOnboard);
+    if (shouldOnboard) {
       setOnboardingStep(user.onboardingStep || 0);
     }
   }, [user]);

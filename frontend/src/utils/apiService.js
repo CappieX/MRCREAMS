@@ -7,7 +7,7 @@
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
 
 // Generic API request handler with error management
-const apiRequest = async (endpoint, method = 'GET', data = null, token = null) => {
+export const apiRequest = async (endpoint, method = 'GET', data = null, token = null) => {
   const url = `${API_BASE_URL}${endpoint}`;
   
   const headers = {

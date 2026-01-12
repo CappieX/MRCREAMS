@@ -21,6 +21,7 @@ const gdprComplianceRouter = require('./routes/gdprComplianceRoutes');
 const securityRouter = require('./routes/securityRoutes');
 const metricsRouter = require('./routes/metricsRoutes');
 const platformRouter = require('./routes/platformRoutes');
+const paymentRouter = require('./routes/paymentRoutes');
 
 // Import middleware
 const { authenticateToken } = require('./middleware/auth');
@@ -139,6 +140,31 @@ app.get('/health', async (req, res) => {
 // API routes
 app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/admin', adminRouter);
+// Friendly API root overview instead of "Route not found"
+app.get('/api', (req, res) => {
+  res.json({
+    name: 'MR.CREAMS Backend API',
+    version: process.env.npm_package_version || '1.0.0',
+    status: 'ok',
+    endpoints: {
+      auth: '/api/auth',
+      admin: '/api/admin',
+      support: '/api/v1/support',
+      emotions: '/api/emotions',
+      therapists: '/api/therapists',
+      mobile: '/api/mobile',
+      analytics: '/api/analytics',
+      reports: '/api/reports',
+      public: '/api/public',
+      integrations: '/api/integrations',
+      hipaa: '/api/hipaa',
+      gdpr: '/api/gdpr',
+      security: '/api/security',
+      platform: '/api/platform',
+      payments: '/api'
+    }
+  });
+});
 app.use('/api/v1/support', supportTicketsRouter);
 app.use('/api/emotions', emotionAnalysisRouter);
 app.use('/api/therapists', therapistRouter);
@@ -151,6 +177,7 @@ app.use('/api/hipaa', hipaaComplianceRouter);
 app.use('/api/gdpr', gdprComplianceRouter);
 app.use('/api/security', securityRouter);
 app.use('/api/platform', platformRouter);
+app.use('/api', paymentRouter);
 app.use('/metrics', metricsRouter);
 
 // Protected routes middleware - require valid JWT for private APIs

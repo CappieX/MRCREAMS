@@ -23,12 +23,18 @@ import HarmonyGuidance from './pages/HarmonyGuidance';
 import Login from './pages/Login';
 import SystemHarmonyAdmin from './pages/SystemHarmonyAdmin';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
+import DashboardLayout from './components/layout/DashboardLayout';
 import LandingPage from './pages/LandingPage';
 import UserTypeSelection from './pages/UserTypeSelection';
 import ApplicationVerification from './pages/ApplicationVerification';
 import EmotionCheckInPage from './pages/EmotionCheckInPage';
 import ConflictInputPage from './pages/ConflictInputPage';
 import ProfessionalLogin from './pages/ProfessionalLogin';
+import Features from './pages/Features';
+import Pricing from './pages/Pricing';
+import Resources from './pages/Resources';
+import Contact from './pages/Contact';
+import About from './pages/About';
 
 // Dashboard Components
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
@@ -60,6 +66,11 @@ import PlatformAdminHome from './pages/platform-admin/PlatformAdminHome';
 import SystemHealth from './pages/platform-admin/SystemHealth';
 import AuditLogs from './pages/platform-admin/AuditLogs';
 import Configuration from './pages/platform-admin/Configuration';
+import UserManagement from './pages/platform-admin/UserManagement';
+import ConflictsAdmin from './pages/platform-admin/ConflictsAdmin';
+import Professionals from './pages/platform-admin/Professionals';
+import AnalyticsHub from './pages/platform-admin/AnalyticsHub';
+import NotificationCenter from './pages/platform-admin/NotificationCenter';
 
 // Support Sub-pages
 import SupportHome from './pages/support/SupportHome';
@@ -79,21 +90,8 @@ import UnifiedRegistration from './components/auth/UnifiedRegistration';
 const AuthenticatedLayout = () => {
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Header />
-      <Sidebar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: { xs: 1, sm: 2, md: 3 },
-          mt: { xs: 7, sm: 8 },
-          minHeight: '100vh',
-        }}
-      >
-        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
-          <ErrorBoundary>
-            <Routes>
+    <DashboardLayout>
+      <Routes>
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -125,6 +123,11 @@ const AuthenticatedLayout = () => {
                 <Route path="health" element={<SystemHealth />} />
                 <Route path="logs" element={<AuditLogs />} />
                 <Route path="config" element={<Configuration />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="conflicts" element={<ConflictsAdmin />} />
+                <Route path="professionals" element={<Professionals />} />
+                <Route path="analytics" element={<AnalyticsHub />} />
+                <Route path="notifications" element={<NotificationCenter />} />
               </Route>
               <Route path="/dashboard/admin" element={
                 <ProtectedRoute allowedRoles={['admin', 'super_admin', 'it_admin']}>
@@ -178,10 +181,7 @@ const AuthenticatedLayout = () => {
               } />
               <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
-          </ErrorBoundary>
-        </Container>
-      </Box>
-    </Box>
+    </DashboardLayout>
   );
 };
 
@@ -220,6 +220,7 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/login/professional" element={<ProfessionalLogin />} />
         <Route path="/pro-login" element={<ProfessionalLogin />} />
+        <Route path="/professional-login" element={<ProfessionalLogin />} />
 
         {/* Unified registration - replaces all individual registration routes */}
         <Route path="/register" element={<UnifiedRegistration />} />
@@ -229,6 +230,12 @@ const AppContent = () => {
         <Route path="/register/user" element={<Navigate to="/register" replace />} />
         <Route path="/register/company" element={<Navigate to="/register" replace />} />
         <Route path="/therapist-registration" element={<Navigate to="/register" replace />} />
+        
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
 
         <Route path="/verification" element={<ApplicationVerification />} />
         <Route path="/onboarding" element={

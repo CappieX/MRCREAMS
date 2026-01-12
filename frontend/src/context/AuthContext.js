@@ -14,6 +14,21 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const normalizeUser = (raw) => {
+    if (!raw) return null;
+    const normalized = {
+      id: raw.id,
+      email: raw.email,
+      name: raw.name,
+      userType: raw.user_type || raw.userType,
+      onboardingCompleted: raw.onboarding_completed ?? raw.onboardingCompleted,
+      emailVerified: raw.email_verified ?? raw.emailVerified,
+      is_admin: raw.is_admin,
+      organizationCode: raw.organization_code || raw.organizationCode,
+    };
+    return normalized;
+  };
+
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -23,7 +38,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('authToken');
       if (token) {
         const userData = await verifyToken(token);
-        setUser(userData);
+        setUser(normalizeUser(userData));
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -49,8 +64,9 @@ export const AuthProvider = ({ children }) => {
       }
       const { user: newUser, token } = data || {};
       if (token) localStorage.setItem('authToken', token);
-      setUser(newUser);
-      return newUser;
+      const normalized = normalizeUser(newUser);
+      setUser(normalized);
+      return normalized;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -100,13 +116,14 @@ export const AuthProvider = ({ children }) => {
       console.log('✅ Login response:', data);
 
       if (data.success) {
-        setUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        const normalized = normalizeUser(data.user);
+        setUser(normalized);
+        localStorage.setItem('user', JSON.stringify(normalized));
         if (data.token) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('authToken', data.token); // Also store as authToken for compatibility
         }
-        return { success: true, user: data.user };
+        return { success: true, user: normalized };
       } else {
         return { success: false, error: data.error };
       }
@@ -129,7 +146,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updates) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('/api/auth/user/profile', {
+      const response = await fetch('/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -139,9 +156,11 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
-        const updatedUser = await response.json();
-        setUser(updatedUser);
-        return updatedUser;
+        const data = await response.json();
+        const payloadUser = data.user || data.data?.user || data;
+        const normalized = normalizeUser(payloadUser);
+        setUser(normalized);
+        return normalized;
       } else {
         throw new Error('Profile update failed');
       }
@@ -154,15 +173,19 @@ export const AuthProvider = ({ children }) => {
   const verifyToken = async (token) => {
     try {
       const response = await fetch('/api/auth/verify', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      if (response.ok) {
-        return await response.json();
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          throw new Error(errJson?.error || 'Token verification failed');
+        }
+        const data = await response.json();
+        return data;
       } else {
-        throw new Error('Token verification failed');
+        const text = await response.text();
+        throw new Error(text || 'Token verification failed');
       }
     } catch (error) {
       // Fallback: check if we have user data in localStorage

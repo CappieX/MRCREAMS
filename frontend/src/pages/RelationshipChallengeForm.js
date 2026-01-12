@@ -106,7 +106,7 @@ function ConflictForm() {
       
       // Redirect after a short delay
       setTimeout(() => {
-        navigate('/conflicts');
+        navigate('/harmony-hub');
       }, 1500);
     } catch (error) {
       console.error('Error saving conflict:', error);
@@ -131,15 +131,15 @@ function ConflictForm() {
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         <Button
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/harmony-hub')}
-          sx={{ mr: 2 }}
-        >
-          Back
-        </Button>
-        <Typography variant="h4">
-          {isEditMode ? 'Edit Challenge' : 'Share Challenge'}
-        </Typography>
-      </Box>
+            onClick={() => navigate('/harmony-hub')}
+            sx={{ mr: 2 }}
+          >
+            Back
+          </Button>
+          <Typography variant="h4">
+            {isEditMode ? 'Edit Challenge' : 'Share Challenge'}
+          </Typography>
+        </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>

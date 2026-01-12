@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@casl/ability": "^6.7.5",
+    "@dataconnect/admin-generated": "file:src/dataconnect-admin-generated",
     "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

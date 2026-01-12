@@ -16,6 +16,7 @@ import CoupleCollaborationHub from '../components/CoupleCollaborationHub';
 import AdvancedAnalyticsSuite from '../components/AdvancedAnalyticsSuite';
 import HarmonyGamificationSystem from '../components/HarmonyGamificationSystem';
 import { useAuth } from '../context/AuthContext';
+import SubscriptionSection from '../components/subscription/SubscriptionSection';
 
 function Dashboard() {
   const { user } = useAuth();
@@ -33,12 +34,24 @@ function Dashboard() {
     progressMetrics: { progressScore: 0 },
     behavioralInsights: { insights: [] }
   });
+  const [metadata, setMetadata] = useState({});
+  const [tips, setTips] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('authToken');
         const config = { headers: { Authorization: `Bearer ${token}` } };
+        // Get user profile with metadata for personalization
+        try {
+          const meRes = await axios.get('/api/auth/me', config);
+          const meUser = meRes.data?.user || {};
+          const meta = meUser.metadata || {};
+          setMetadata(meta);
+          setTips(derivePersonalizedTips(meta));
+        } catch (err) {
+          console.error('Failed to fetch user profile:', err);
+        }
         const response = await axios.get('/api/conflicts', config);
         setConflicts(response.data.slice(0, 5)); // Get only the 5 most recent conflicts
         
@@ -94,8 +107,67 @@ function Dashboard() {
     fetchData();
   }, []);
 
+  const derivePersonalizedTips = (meta) => {
+    const rc = meta?.relationshipContext || {};
+    const gp = meta?.goalsPreferences || {};
+    const goals = Array.isArray(gp?.goals) ? gp.goals : [];
+    const tipsList = [];
+
+    if (rc?.status === 'cohabiting' || rc?.status === 'newly_married') {
+      tipsList.push({
+        primary: 'Set shared routines',
+        secondary: 'Align chores and schedules to reduce friction'
+      });
+      tipsList.push({
+        primary: 'Weekly check-in',
+        secondary: 'Create a 30-min ritual to reflect and adjust'
+      });
+    }
+
+    if (rc?.hasChildren) {
+      tipsList.push({
+        primary: 'Clarify parenting roles',
+        secondary: 'Define responsibilities to avoid role conflict'
+      });
+    }
+
+    if (goals.includes('communication')) {
+      tipsList.push({
+        primary: 'Practice active listening',
+        secondary: 'Summarize and validate before responding'
+      });
+    }
+
+    if (goals.includes('conflict-resolution')) {
+      tipsList.push({
+        primary: 'Use timeouts wisely',
+        secondary: 'Pause when escalated; resume with a plan'
+      });
+    }
+
+    if (goals.includes('financial-harmony')) {
+      tipsList.push({
+        primary: 'Budget together',
+        secondary: 'Monthly finance review to build trust'
+      });
+    }
+
+    if (tipsList.length === 0) {
+      return [
+        { primary: 'Listen actively', secondary: 'Focus on understanding before responding' },
+        { primary: "Use 'I' statements", secondary: 'Express feelings without blaming' },
+        { primary: 'Take breaks when needed', secondary: 'Step away if emotions get too intense' },
+        { primary: 'Focus on the issue', secondary: 'Avoid bringing up past conflicts' }
+      ];
+    }
+    return tipsList.slice(0, 6);
+  };
+
   return (
     <Box>
+      <Box sx={{ mb: 3 }}>
+        <SubscriptionSection />
+      </Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" gutterBottom fontWeight="medium">
@@ -106,8 +178,8 @@ function Dashboard() {
           </Typography>
           <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Chip label={user?.name || user?.email || 'User'} color="primary" variant="outlined" />
-            <Chip label={(user?.user_type || 'individual').replace('_',' ').toUpperCase()} color="secondary" variant="outlined" />
-            {user?.onboarding_completed && <Chip label="Onboarding Complete" color="success" />}
+            <Chip label={(user?.userType || user?.user_type || 'individual').replace('_',' ').toUpperCase()} color="secondary" variant="outlined" />
+            {user?.onboardingCompleted && <Chip label="Onboarding Complete" color="success" />}
           </Box>
         </Box>
         <Button
@@ -119,6 +191,44 @@ function Dashboard() {
           sx={{ borderRadius: 2 }}
         >
           Share Challenge
+        </Button>
+      </Box>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 3 }}>
+        <Button
+          variant="outlined"
+          startIcon={<PsychologyIcon />}
+          component={Link}
+          to="/emotion-checkin"
+          sx={{ borderRadius: 2 }}
+        >
+          Emotion Check-in
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<AddIcon />}
+          component={Link}
+          to="/harmony-hub/new"
+          sx={{ borderRadius: 2 }}
+        >
+          Share Challenge
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<InsightsIcon />}
+          component={Link}
+          to="/emotion-insights"
+          sx={{ borderRadius: 2 }}
+        >
+          Emotion Insights
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<PsychologyIcon />}
+          component={Link}
+          to="/harmony-guidance"
+          sx={{ borderRadius: 2 }}
+        >
+          Harmony Guidance
         </Button>
       </Box>
       
@@ -351,36 +461,23 @@ function Dashboard() {
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <StyledCard title="Quick Tips" icon={<PsychologyIcon />}>
-            <List>
-              <ListItem>
-                <ListItemText 
-                  primary="Listen actively"
-                  secondary="Focus on understanding before responding"
-                />
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText 
-                  primary="Use 'I' statements"
-                  secondary="Express feelings without blaming"
-                />
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText 
-                  primary="Take breaks when needed"
-                  secondary="Step away if emotions get too intense"
-                />
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText 
-                  primary="Focus on the issue"
-                  secondary="Avoid bringing up past conflicts"
-                />
-              </ListItem>
-            </List>
+          <StyledCard title="Tailored Tips" icon={<PsychologyIcon />}>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : (
+              <List>
+                {tips.map((t, idx) => (
+                  <React.Fragment key={`${t.primary}-${idx}`}>
+                    <ListItem>
+                      <ListItemText primary={t.primary} secondary={t.secondary} />
+                    </ListItem>
+                    {idx < tips.length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
               <Button component={Link} to="/recommendations" size="small" color="primary">
                 More Tips

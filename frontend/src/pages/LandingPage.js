@@ -29,14 +29,25 @@ import {
   PlayCircle as PlayIcon,
   Security as SecurityIcon,
   Business as BusinessIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Twitter as TwitterIcon,
+  LinkedIn as LinkedInIcon,
+  Instagram as InstagramIcon,
+  MedicalServices as MedicalServicesIcon
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import HeroSection from '../components/landing/HeroSection';
+import EmotionAnalysisDemo from '../components/landing/EmotionAnalysisDemo';
+import TherapistFeatures from '../components/landing/TherapistFeatures';
+
+import Testimonials from '../components/landing/Testimonials';
 
 const LandingPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [emotionalState, setEmotionalState] = useState('neutral');
+  const [showBottomCTA, setShowBottomCTA] = useState(false);
 
   const testimonials = [
     {
@@ -116,7 +127,6 @@ const LandingPage = () => {
     },
     {
       step: "03",
-      title: "Personalized Guidance", 
       description: "Get customized exercises, insights, and recommendations tailored to your unique situation.",
       icon: <InsightsIcon sx={{ fontSize: 32 }} />
     },
@@ -127,12 +137,82 @@ const LandingPage = () => {
       icon: <TrendingUpIcon sx={{ fontSize: 32 }} />
     }
   ];
+  
+  const timelineSteps = [
+    {
+      key: 'share',
+      icon: '🎤',
+      title: 'Share Your Experience',
+      details: 'Voice recording • Text conversation • Video session',
+      note: 'Choose what feels comfortable'
+    },
+    {
+      key: 'analyze',
+      icon: '🔍',
+      title: 'AI Emotion Analysis',
+      details: '12+ emotional dimensions detected in real-time',
+      note: 'Emotion heatmap visualization'
+    },
+    {
+      key: 'guide',
+      icon: '🧭',
+      title: 'Personalized Guidance',
+      details: 'Custom exercises • Conversation prompts • Insight reports',
+      note: 'Tailored to your unique patterns'
+    },
+    {
+      key: 'grow',
+      icon: '📈',
+      title: 'Track Progress Together',
+      details: 'Harmony Score dashboard • Milestone celebrations • Trend analysis',
+      note: 'Visible improvement in 30 days'
+    }
+  ];
 
   const stats = [
     { number: "85%", label: "of couples report better communication" },
     { number: "40%", label: "average reduction in recurring conflicts" },
     { number: "9/10", label: "users feel more understood by partners" },
     { number: "70%", label: "improvement in emotional connection scores" }
+  ];
+
+  const therapistShowcaseFeatures = [
+    {
+      title: 'HIPAA-Compliant Dashboard',
+      icon: '🛡️',
+      description: 'Bank-level security with end-to-end encryption',
+      badge: 'GDPR Ready'
+    },
+    {
+      title: 'Advanced Session Analytics',
+      icon: '📊',
+      description: 'Deep emotional pattern recognition across sessions',
+      feature: 'Export reports to PDF/CSV'
+    },
+    {
+      title: 'AI-Assisted Documentation',
+      icon: '🤖',
+      description: 'Automated progress notes with therapist review',
+      feature: '40% faster documentation'
+    },
+    {
+      title: 'Multi-Client Management',
+      icon: '👥',
+      description: 'Manage 50+ clients with individual progress tracking',
+      feature: 'Bulk action support'
+    },
+    {
+      title: 'Integration Ecosystem',
+      icon: '🔌',
+      description: 'Connect with EHR systems, calendars, payment processors',
+      logos: ['Zoom', 'Google Calendar', 'Stripe', 'TherapyNotes']
+    },
+    {
+      title: 'Research & Training',
+      icon: '🎓',
+      description: 'Access to latest emotional intelligence research',
+      feature: 'Continuing education credits'
+    }
   ];
 
   // New: User type options for the unified system
@@ -166,6 +246,16 @@ const LandingPage = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, [testimonials.length]);
+  useEffect(() => {
+    const onScroll = () => {
+      setShowBottomCTA(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
 
   const handleEmotionalCheckIn = (emotion) => {
     setEmotionalState(emotion);
@@ -189,250 +279,126 @@ const LandingPage = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Hero Section */}
+      <HeroSection />
+      
+      {/* Emotion Analysis Demo */}
+      <EmotionAnalysisDemo />
+
+      {/* Therapist Features Section */}
+      <TherapistFeatures />
+
+      {/* Testimonials Section */}
+      <Testimonials />
+
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${alpha('#4A90E2', 0.1)} 0%, ${alpha('#8B5FBF', 0.1)} 100%)`,
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          position: 'relative',
-          overflow: 'hidden'
+          py: 10,
+          background: `linear-gradient(180deg, ${alpha('#0A2540', 0.04)} 0%, ${alpha('#00B4D8', 0.03)} 100%)`
         }}
       >
-        {/* Background Decoration */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -100,
-            right: -100,
-            width: 300,
-            height: 300,
-            borderRadius: '50%',
-            background: `linear-gradient(45deg, ${alpha('#4A90E2', 0.1)}, ${alpha('#8B5FBF', 0.1)})`,
-            animation: 'float 6s ease-in-out infinite'
-          }}
-        />
-        
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Box>
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4rem' },
-                    fontWeight: 'bold',
-                    color: 'text.primary',
-                    mb: 2,
-                    lineHeight: 1.2
-                  }}
-                >
-                  Heal Your Relationship with{' '}
-                  <Box component="span" sx={{ color: '#4A90E2' }}>
-                    Emotional Intelligence
-                  </Box>
-                </Typography>
-                
-                <Typography
-                  variant="h5"
-                  sx={{
-                    color: 'text.secondary',
-                    mb: 4,
-                    lineHeight: 1.6,
-                    fontWeight: 400
-                  }}
-                >
-                  MR.CREAMS uses advanced emotion analysis to help couples communicate better, 
-                  understand deeper, and grow together through smart conflict resolution.
-                </Typography>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 7 }}>
+            <Typography variant="h3" fontWeight="bold" sx={{ color: '#0A2540', mb: 2 }}>
+              Professional Features Showcase
+            </Typography>
+            <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 780, mx: 'auto' }}>
+              Purpose-built tooling for therapists who want better outcomes, faster documentation, and secure workflows.
+            </Typography>
+          </Box>
 
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 4 }}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    endIcon={<ArrowForwardIcon />}
-                    onClick={handleStartJourney}
-                    sx={{
-                      bgcolor: '#4A90E2',
-                      px: 4,
-                      py: 1.5,
-                      borderRadius: 3,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      '&:hover': {
-                        bgcolor: '#357ABD',
-                        transform: 'translateY(-2px)'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    Start Your Journey
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    startIcon={<PlayIcon />}
-                    onClick={handleSeeHowItWorks}
-                    sx={{
-                      borderColor: '#4A90E2',
-                      color: '#4A90E2',
-                      px: 4,
-                      py: 1.5,
-                      borderRadius: 3,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      '&:hover': {
-                        borderColor: '#357ABD',
-                        bgcolor: alpha('#4A90E2', 0.1)
-                      }
-                    }}
-                  >
-                    See How It Works
-                  </Button>
-                </Box>
-
-                {/* Emotional Check-in Demo */}
-                <Paper
-                  sx={{
-                    p: 3,
-                    borderRadius: 3,
-                    bgcolor: alpha('#4A90E2', 0.05),
-                    border: `1px solid ${alpha('#4A90E2', 0.2)}`
-                  }}
-                >
-                  <Typography variant="h6" gutterBottom sx={{ color: '#4A90E2', fontWeight: 'bold' }}>
-                    Try Our Emotional Check-in
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Experience how MR.CREAMS understands your emotions
-                  </Typography>
-                  
-                  <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                    {['😌', '😊', '😐', '😰', '😢'].map((emoji, index) => (
-                      <IconButton
-                        key={index}
-                        onClick={() => handleEmotionalCheckIn(emoji)}
-                        sx={{
-                          bgcolor: emotionalState === emoji ? '#4A90E2' : 'transparent',
-                          color: emotionalState === emoji ? 'white' : 'text.primary',
-                          '&:hover': {
-                            bgcolor: alpha('#4A90E2', 0.2)
-                          }
-                        }}
-                      >
-                        <Typography sx={{ fontSize: '1.5rem' }}>{emoji}</Typography>
-                      </IconButton>
-                    ))}
-                  </Box>
-                  
-                  {emotionalState !== 'neutral' && (
-                    <Typography variant="body2" sx={{ color: '#4A90E2', fontWeight: 'bold' }}>
-                      AI Insight: "I sense you're feeling {emotionalState === '😌' ? 'calm and peaceful' : 
-                      emotionalState === '😊' ? 'happy and content' : 
-                      emotionalState === '😰' ? 'anxious or stressed' : 
-                      emotionalState === '😢' ? 'sad or emotional' : 'neutral'}. 
-                      This is a great starting point for understanding your emotional state."
-                    </Typography>
-                  )}
-                </Paper>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Box
-                sx={{
-                  position: 'relative',
-                  textAlign: 'center'
-                }}
-              >
-                {/* Main Dashboard Preview */}
+          <Grid container spacing={4}>
+            {therapistShowcaseFeatures.map((feature) => (
+              <Grid item xs={12} sm={6} md={4} key={feature.title}>
                 <Card
                   sx={{
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                    transform: 'rotateY(-5deg) rotateX(5deg)',
-                    transition: 'transform 0.3s ease'
+                    height: '100%',
+                    borderRadius: 3,
+                    border: `1px solid ${alpha('#0A2540', 0.08)}`,
+                    boxShadow: '0 10px 30px rgba(10, 37, 64, 0.06)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-6px)',
+                      boxShadow: '0 18px 50px rgba(10, 37, 64, 0.12)',
+                      borderColor: alpha('#00B4D8', 0.45)
+                    }
                   }}
                 >
-                  <Box
-                    sx={{
-                      height: 300,
-                      background: `linear-gradient(135deg, ${alpha('#4A90E2', 0.1)} 0%, ${alpha('#8B5FBF', 0.1)} 100%)`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexDirection: 'column',
-                      p: 3
-                    }}
-                  >
-                    <Avatar sx={{ bgcolor: '#4A90E2', width: 60, height: 60, mb: 2 }}>
-                      <HeartIcon sx={{ fontSize: 30 }} />
-                    </Avatar>
-                    <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A90E2', mb: 1 }}>
-                      Harmony Score: 85%
+                  <CardContent sx={{ p: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ fontSize: 34, lineHeight: 1 }}>{feature.icon}</Box>
+                        <Typography variant="h6" fontWeight="bold" sx={{ color: '#0A2540' }}>
+                          {feature.title}
+                        </Typography>
+                      </Box>
+                      {feature.badge ? (
+                        <Chip
+                          label={feature.badge}
+                          size="small"
+                          sx={{
+                            bgcolor: alpha('#00B4D8', 0.12),
+                            color: '#0A2540',
+                            fontWeight: 700
+                          }}
+                        />
+                      ) : null}
+                    </Box>
+
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
+                      {feature.description}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Your relationship is growing stronger
-                    </Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={85}
-                      sx={{
-                        width: '100%',
-                        mt: 2,
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: alpha('#4A90E2', 0.2),
-                        '& .MuiLinearProgress-bar': {
-                          bgcolor: '#4A90E2'
-                        }
-                      }}
-                    />
-                  </Box>
+
+                    {feature.logos ? (
+                      <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {feature.logos.map((logo) => (
+                          <Chip
+                            key={logo}
+                            label={logo}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              borderColor: alpha('#0A2540', 0.18),
+                              color: '#0A2540',
+                              bgcolor: alpha('#FFFFFF', 0.7)
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    ) : null}
+
+                    {feature.feature ? (
+                      <Chip
+                        label={feature.feature}
+                        size="small"
+                        sx={{
+                          mb: 2,
+                          bgcolor: alpha('#0A2540', 0.06),
+                          color: '#0A2540',
+                          fontWeight: 600
+                        }}
+                      />
+                    ) : null}
+
+                    <Box>
+                      <Button
+                        variant="text"
+                        endIcon={<ArrowForwardIcon />}
+                        onClick={() => navigate('/register')}
+                        sx={{
+                          px: 0,
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          color: '#00B4D8',
+                          '&:hover': { bgcolor: 'transparent', color: '#0096c7' }
+                        }}
+                      >
+                        Learn More
+                      </Button>
+                    </Box>
+                  </CardContent>
                 </Card>
-                
-                {/* Floating Elements */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: -20,
-                    right: -20,
-                    bgcolor: '#8B5FBF',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: 60,
-                    height: 60,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    animation: 'pulse 2s infinite'
-                  }}
-                >
-                  <PsychologyIcon sx={{ fontSize: 24 }} />
-                </Box>
-                
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: -20,
-                    left: -20,
-                    bgcolor: '#4ECDC4',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: 50,
-                    height: 50,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    animation: 'float 3s ease-in-out infinite'
-                  }}
-                >
-                  <TrendingUpIcon sx={{ fontSize: 20 }} />
-                </Box>
-              </Box>
-            </Grid>
+              </Grid>
+            ))}
           </Grid>
         </Container>
       </Box>
@@ -548,7 +514,7 @@ const LandingPage = () => {
       </Box>
 
       {/* How It Works Section */}
-      <Box sx={{ py: 8, bgcolor: 'background.paper' }}>
+      <Box id="how-it-works" sx={{ py: 8, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <Typography
             variant="h3"
@@ -598,6 +564,68 @@ const LandingPage = () => {
               </Grid>
             ))}
           </Grid>
+        </Container>
+      </Box>
+      
+      <Box id="timeline" sx={{ py: 10, bgcolor: 'background.default' }}>
+        <Container maxWidth="lg">
+          <Typography
+            variant="h3"
+            textAlign="center"
+            fontWeight="bold"
+            sx={{ mb: 2, color: 'text.primary' }}
+          >
+            How It Works Timeline
+          </Typography>
+          <Typography
+            variant="h6"
+            textAlign="center"
+            color="text.secondary"
+            sx={{ mb: 8, maxWidth: 800, mx: 'auto' }}
+          >
+            Share → Analyze → Guide → Grow
+          </Typography>
+          
+          <Box sx={{ position: 'relative', px: { xs: 2, md: 6 } }}>
+            <Box sx={{ position: 'absolute', left: { xs: 24, md: 48 }, top: 0, bottom: 0, width: 4, bgcolor: alpha('#4A90E2', 0.15), borderRadius: 2 }} />
+            <motion.div
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, transformOrigin: 'top', width: 4 }}
+            >
+              <Box sx={{ position: 'absolute', left: { xs: 24, md: 48 }, top: 0, bottom: 0, width: 4, borderRadius: 2, background: `linear-gradient(180deg, ${alpha('#4A90E2', 0.3)} 0%, ${alpha('#00B4D8', 0.6)} 100%)` }} />
+            </motion.div>
+            <Grid container spacing={4}>
+              {timelineSteps.map((step) => (
+                <Grid item xs={12} key={step.key}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <Box sx={{ position: 'relative', minWidth: 56, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: '#00B4D8', boxShadow: '0 0 0 6px rgba(0, 180, 216, 0.2)' }} />
+                    </Box>
+                    <Box sx={{ flex: 1, p: 2, borderRadius: 3, bgcolor: 'background.paper', border: `1px solid ${alpha('#4A90E2', 0.12)}` }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Typography variant="h5" fontWeight="bold" sx={{ color: 'text.primary' }}>{step.title}</Typography>
+                        <Typography variant="h5" sx={{ lineHeight: 1 }}>{step.icon}</Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{step.details}</Typography>
+                      <Chip label={step.note} size="small" sx={{ bgcolor: alpha('#4A90E2', 0.08), color: '#4A90E2', fontWeight: 600 }} />
+                    </Box>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+            <Box sx={{ textAlign: 'center', mt: 6 }}>
+              <Button
+                variant="text"
+                endIcon={<ArrowForwardIcon />}
+                onClick={handleSeeHowItWorks}
+                sx={{ textTransform: 'none', fontWeight: 700, color: '#00B4D8', '&:hover': { bgcolor: 'transparent', color: '#0096c7' } }}
+              >
+                See Detailed Walkthrough →
+              </Button>
+            </Box>
+          </Box>
         </Container>
       </Box>
 
@@ -676,114 +704,196 @@ const LandingPage = () => {
       {/* CTA Section */}
       <Box
         sx={{
-          py: 8,
-          background: `linear-gradient(135deg, ${alpha('#4A90E2', 0.1)} 0%, ${alpha('#8B5FBF', 0.1)} 100%)`,
-          textAlign: 'center'
+          py: 10,
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #00B4D8 0%, #0A2540 100%)',
+          color: '#fff'
         }}
       >
-        <Container maxWidth="md">
-          <Typography
-            variant="h3"
-            fontWeight="bold"
-            sx={{ mb: 3, color: 'text.primary' }}
-          >
-            Ready to Transform Your Relationship?
+        <Container maxWidth="lg">
+          <Typography variant="h3" fontWeight="bold" sx={{ mb: 2 }}>
+            Ready to Transform Relationships with Emotional Intelligence?
           </Typography>
-          <Typography
-            variant="h6"
-            color="text.secondary"
-            sx={{ mb: 4, lineHeight: 1.6 }}
-          >
-            Join thousands of couples who have discovered the power of emotional intelligence 
-            in building stronger, more connected relationships.
+          <Typography variant="h6" sx={{ mb: 5, opacity: 0.9 }}>
+            Join thousands who've discovered deeper connection through AI-powered insights
           </Typography>
-          
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 4 }}>
-            <Button
-              variant="contained"
-              size="large"
-              endIcon={<ArrowForwardIcon />}
-              onClick={handleStartJourney}
-              sx={{
-                bgcolor: '#4A90E2',
-                px: 6,
-                py: 2,
-                borderRadius: 3,
-                fontSize: '1.2rem',
-                fontWeight: 'bold',
-                '&:hover': {
-                  bgcolor: '#357ABD',
-                  transform: 'translateY(-2px)'
-                },
-                transition: 'all 0.3s ease'
-              }}
-            >
-              Start Your Journey
-            </Button>
-            
-            <Button
-              variant="outlined"
-              size="large"
-              onClick={() => navigate('/login')}
-              sx={{
-                borderColor: '#8B5FBF',
-                color: '#8B5FBF',
-                px: 6,
-                py: 2,
-                borderRadius: 3,
-                fontSize: '1.2rem',
-                fontWeight: 'bold',
-                '&:hover': {
-                  borderColor: '#7B4F9F',
-                  bgcolor: alpha('#8B5FBF', 0.1)
-                }
-              }}
-            >
-              Sign In
-            </Button>
-          </Box>
-          
-          <Typography variant="body2" color="text.secondary">
-            🔒 Your privacy is protected • 💝 30-day money-back guarantee • 🚀 Start free today
+          <Grid container spacing={3} justifyContent="center" sx={{ mb: 4 }}>
+            <Grid item xs={12} md="auto">
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<HeartIcon />}
+                onClick={() => navigate('/register')}
+                sx={{
+                  bgcolor: '#FF6B6B',
+                  color: '#fff',
+                  px: 4,
+                  py: 2,
+                  borderRadius: 3,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  '&:hover': { bgcolor: '#e45a5a' }
+                }}
+              >
+                ❤️ Start Free Couples Trial
+              </Button>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+                30-day emotional check-in included
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md="auto">
+              <Button
+                variant="outlined"
+                size="large"
+                startIcon={<MedicalServicesIcon />}
+                onClick={() => navigate('/login/professional')}
+                sx={{
+                  borderColor: '#00B4D8',
+                  color: '#00B4D8',
+                  px: 4,
+                  py: 2,
+                  borderRadius: 3,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  backgroundColor: alpha('#FFFFFF', 0.05),
+                  '&:hover': { borderColor: '#0096c7', backgroundColor: alpha('#FFFFFF', 0.12) }
+                }}
+              >
+                🩺 Request Professional Demo
+              </Button>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
+                See full clinical features
+              </Typography>
+            </Grid>
+          </Grid>
+          <Typography variant="body1" sx={{ opacity: 0.95 }}>
+            ✅ No credit card required • 🔒 100% Private • 🩺 HIPAA Compliant
           </Typography>
         </Container>
       </Box>
-
-      {/* Footer */}
-      <Box sx={{ py: 4, bgcolor: 'background.paper', borderTop: `1px solid ${alpha('#4A90E2', 0.1)}` }}>
+      
+      <Box sx={{ bgcolor: 'background.paper', pt: 8 }}>
         <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Typography variant="h5" fontWeight="bold" sx={{ color: '#4A90E2', mb: 1 }}>
-                MR.CREAMS
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Smart healing for modern relationships
-              </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: alpha('#00B4D8', 0.15), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <HeartIcon sx={{ color: '#00B4D8' }} />
+              </Box>
+              <Box>
+                <Typography variant="h6" fontWeight="bold">MR.CREAMS</Typography>
+                <Typography variant="body2" color="text.secondary">Modern Relationship Conflict Resolution & Emotion Analysis</Typography>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <IconButton color="primary" aria-label="Twitter"><TwitterIcon /></IconButton>
+              <IconButton color="primary" aria-label="LinkedIn"><LinkedInIcon /></IconButton>
+              <IconButton color="primary" aria-label="Instagram"><InstagramIcon /></IconButton>
+            </Box>
+          </Box>
+          
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={3}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Product</Typography>
+              <Box sx={{ display: 'grid', gap: 1 }}>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/features')}>Features</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/pricing')}>Pricing</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/demo')}>Demo</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/updates')}>Updates</Button>
+              </Box>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                <Typography variant="body2" color="text.secondary">
-                  © 2024 MR.CREAMS. All rights reserved.
-                </Typography>
+            <Grid item xs={12} md={3}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>For Couples</Typography>
+              <Box sx={{ display: 'grid', gap: 1 }}>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={handleSeeHowItWorks}>How It Works</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/stories')}>Success Stories</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/exercises')}>Exercises</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/faq')}>FAQ</Button>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>For Professionals</Typography>
+              <Box sx={{ display: 'grid', gap: 1 }}>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/therapist/tools')}>Therapist Tools</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/integrations')}>Integrations</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/training')}>Training</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/api')}>API</Button>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Company</Typography>
+              <Box sx={{ display: 'grid', gap: 1 }}>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/about')}>About</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/careers')}>Careers</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/contact')}>Contact</Button>
+                <Button variant="text" sx={{ justifyContent: 'flex-start' }} onClick={() => navigate('/blog')}>Blog</Button>
               </Box>
             </Grid>
           </Grid>
+          
+          <Box sx={{ mt: 4, p: 3, bgcolor: alpha('#00B4D8', 0.06), borderRadius: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" fontWeight="bold">Get emotional intelligence tips →</Typography>
+                <Typography variant="body2" color="text.secondary">Monthly insights to help you connect better</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Paper sx={{ flex: 1, p: 0.5 }} variant="outlined">
+                    <Box component="input" placeholder="Enter your email" style={{ width: '100%', border: 0, outline: 'none', padding: '12px' }} />
+                  </Paper>
+                  <Button variant="contained" endIcon={<ArrowForwardIcon />} sx={{ px: 3 }}>
+                    Subscribe
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+          
+          <Box sx={{ mt: 6, py: 3, borderTop: `1px solid ${alpha('#0A2540', 0.1)}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">© 2024 MR.CREAMS by Enum Technology</Typography>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Button variant="text" onClick={() => navigate('/privacy')}>Privacy Policy</Button>
+              <Button variant="text" onClick={() => navigate('/terms')}>Terms</Button>
+              <Button variant="text" onClick={() => navigate('/cookies')}>Cookie Policy</Button>
+              <Button variant="text" onClick={() => navigate('/compliance')}>Compliance</Button>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip label="HIPAA Compliant" size="small" />
+              <Chip label="GDPR Ready" size="small" />
+              <Chip label="SOC 2 Certified" size="small" />
+            </Box>
+          </Box>
         </Container>
       </Box>
-
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-      `}</style>
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          bgcolor: 'background.paper',
+          borderTop: `1px solid ${alpha('#0A2540', 0.1)}`,
+          display: { xs: showBottomCTA ? 'flex' : 'none', md: 'none' },
+          py: 1.5,
+          px: 2,
+          gap: 1,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          zIndex: 1200
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          Ready to start?
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="contained" onClick={() => navigate('/register')} sx={{ borderRadius: 2, minHeight: 44 }}>
+            Try Free
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/login/professional')} sx={{ borderRadius: 2, minHeight: 44 }}>
+            Demo
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
 };

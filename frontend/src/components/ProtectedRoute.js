@@ -17,19 +17,19 @@ const ProtectedRoute = ({ children, adminOnly = false, allowedRoles = [] }) => {
   }
 
   if (!currentUser) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   // Check if user needs onboarding
   if (needsOnboarding) {
-    return <Navigate to="/onboarding" />;
+    return <Navigate to="/onboarding" replace />;
   }
 
   // Check allowed roles if provided
   const role = currentUser.user_type || currentUser.userType;
   if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
     // If user has a dashboard, redirect there, otherwise home
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Backward compatibility for adminOnly
@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children, adminOnly = false, allowedRoles = [] }) => {
     const admins = ['admin', 'super_admin', 'platform_admin', 'it_admin'];
     // Check user_type or legacy is_admin flag
     if (!admins.includes(role) && !currentUser.is_admin) {
-      return <Navigate to="/" />;
+      return <Navigate to="/" replace />;
     }
   }
 

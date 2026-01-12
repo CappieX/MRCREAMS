@@ -208,14 +208,6 @@ router.post('/login', async (req, res) => {
       req.get('User-Agent')
     );
 
-    // Generate JWT token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      userType: user.user_type,
-      organizationId: user.organization_id
-    });
-
     res.json({
       message: 'Login successful',
       user: {
@@ -229,7 +221,7 @@ router.post('/login', async (req, res) => {
         onboardingCompleted: user.onboarding_completed,
         emailVerified: user.email_verified
       },
-      token,
+      token: session.sessionToken,
       refreshToken: session.refreshToken,
       expiresAt: session.expiresAt
     });
@@ -715,7 +707,7 @@ router.get('/me', authenticateToken, async (req, res) => {
  */
 router.put('/profile', authenticateToken, auditLog('profile_update', 'users'), async (req, res) => {
   try {
-    const { name, phone, timezone, language, preferences } = req.body;
+    const { name, phone, timezone, language, preferences, onboardingCompleted, onboardingCompletedAt, userType, onboardingStep, onboardingData, relationshipContext, goalsPreferences, emotionalSnapshot } = req.body;
     const updates = [];
     const values = [];
     let paramCount = 1;
@@ -750,6 +742,18 @@ router.put('/profile', authenticateToken, auditLog('profile_update', 'users'), a
       paramCount++;
     }
 
+    if (typeof onboardingCompleted !== 'undefined') {
+      updates.push(`onboarding_completed = $${paramCount}`);
+      values.push(!!onboardingCompleted);
+      paramCount++;
+    }
+
+    if (userType) {
+      updates.push(`user_type = $${paramCount}`);
+      values.push(userType);
+      paramCount++;
+    }
+
     if (updates.length === 0) {
       return res.status(400).json({
         error: 'No fields to update',
@@ -764,6 +768,29 @@ router.put('/profile', authenticateToken, auditLog('profile_update', 'users'), a
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
       values
     );
+
+    const metadataUpdates = {};
+    if (typeof onboardingStep !== 'undefined') metadataUpdates.onboarding_step = onboardingStep;
+    if (onboardingData) metadataUpdates.onboarding_data = onboardingData;
+    if (relationshipContext) metadataUpdates.relationship_context = relationshipContext;
+    if (goalsPreferences) metadataUpdates.goals_preferences = goalsPreferences;
+    if (emotionalSnapshot) metadataUpdates.emotional_snapshot = emotionalSnapshot;
+    if (onboardingCompletedAt) metadataUpdates.onboarding_completed_at = onboardingCompletedAt;
+
+    if (Object.keys(metadataUpdates).length > 0) {
+      const existingMeta = await query(
+        'SELECT metadata FROM user_metadata WHERE user_id = $1',
+        [req.user.id]
+      );
+      const currentMeta = existingMeta.rows.length > 0 ? existingMeta.rows[0].metadata || {} : {};
+      const newMeta = { ...currentMeta, ...metadataUpdates };
+      await query(
+        `INSERT INTO user_metadata (user_id, metadata, updated_at)
+         VALUES ($1, $2, NOW())
+         ON CONFLICT (user_id) DO UPDATE SET metadata = EXCLUDED.metadata, updated_at = NOW()`,
+        [req.user.id, JSON.stringify(newMeta)]
+      );
+    }
 
     res.json({
       message: 'Profile updated successfully',

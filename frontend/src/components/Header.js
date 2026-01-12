@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Box, useTheme, Button } from '@mui/material';
 import { Menu as MenuIcon, Logout as LogoutIcon } from '@mui/icons-material';
 import ThemeSettings from './ThemeSettings';
+import { ThemeToggle } from './ui/theme-toggle.tsx';
 import { Link, useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -60,6 +61,9 @@ function Header() {
               System Harmony
             </Button>
           )}
+          <Box sx={{ mr: 1 }}>
+            <ThemeToggle />
+          </Box>
           <ThemeSettings />
           <IconButton color="inherit" onClick={handleLogout} sx={{ ml: 1 }} title="Logout">
             <LogoutIcon />

@@ -74,7 +74,7 @@ function ConflictList() {
           color="primary"
           startIcon={<AddIcon />}
           component={RouterLink}
-          to="/conflicts/new"
+          to="/harmony-hub/new"
           sx={{ borderRadius: 2 }}
         >
           Share Challenge
@@ -154,7 +154,7 @@ function ConflictList() {
                         <IconButton 
                           size="small" 
                           component={RouterLink} 
-                          to={`/conflicts/edit/${conflict.id}`}
+                          to={`/harmony-hub/edit/${conflict.id}`}
                           color="primary"
                         >
                           <EditIcon fontSize="small" />

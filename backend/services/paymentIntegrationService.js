@@ -1,5 +1,7 @@
 const { query } = require('../config/database');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const axios = require('axios');
+const crypto = require('crypto');
 
 class PaymentIntegrationService {
   /**
@@ -39,6 +41,150 @@ class PaymentIntegrationService {
       console.error('Create Stripe customer error:', error);
       throw new Error('Failed to create customer');
     }
+  }
+
+  async ensureUserSubscriptionColumns() {
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR(50)`, []);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE`, []);
+  }
+
+  async setUserSubscriptionTier(userId, { tier, priceId, currency }) {
+    await this.ensureUserSubscriptionColumns();
+    if (tier === 'free') {
+      await query(`UPDATE users SET subscription_tier = $1, trial_ends_at = NULL, updated_at = NOW() WHERE id = $2`, ['free', userId]);
+      return { tier: 'free' };
+    }
+    if (tier === 'trial') {
+      const trialEnds = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      await query(`UPDATE users SET subscription_tier = $1, trial_ends_at = $2, updated_at = NOW() WHERE id = $3`, ['trial', trialEnds, userId]);
+      return { tier: 'trial', trialEndsAt: trialEnds };
+    }
+    if (tier === 'premium' && priceId) {
+      const sub = await this.createSubscription(userId, { priceId, sessionFrequency: 'monthly', therapistId: userId });
+      await query(`UPDATE users SET subscription_tier = $1, trial_ends_at = NULL, updated_at = NOW() WHERE id = $2`, ['premium', userId]);
+      return { tier: 'premium', subscriptionId: sub.data.subscriptionId };
+    }
+    throw new Error('Invalid subscription tier');
+  }
+
+  async getUserTrialInfo(userId) {
+    await this.ensureUserSubscriptionColumns();
+    const r = await query(`SELECT subscription_tier, trial_ends_at FROM users WHERE id = $1`, [userId]);
+    if (r.rows.length === 0) return { tier: 'free', remainingDays: 0 };
+    const row = r.rows[0];
+    if (!row.trial_ends_at) return { tier: row.subscription_tier || 'free', remainingDays: 0 };
+    const remainingMs = new Date(row.trial_ends_at).getTime() - Date.now();
+    const remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+    return { tier: row.subscription_tier || 'trial', remainingDays, trialEndsAt: row.trial_ends_at };
+  }
+
+  async storeGatewayCredentials(provider, credentials) {
+    const settings = JSON.stringify(credentials);
+    const result = await query(
+      `INSERT INTO integration_settings (user_id, integration_type, provider, settings, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, true, NOW(), NOW())
+       ON CONFLICT (user_id, integration_type, provider)
+       DO UPDATE SET settings = EXCLUDED.settings, updated_at = NOW()
+       RETURNING provider`,
+      ['00000000-0000-0000-0000-000000000000', 'payment', provider, settings]
+    );
+    return { provider: result.rows[0].provider };
+  }
+
+  async getGatewayCredentials(provider) {
+    const r = await query(
+      `SELECT settings FROM integration_settings WHERE user_id = $1 AND integration_type = $2 AND provider = $3 AND is_active = true`,
+      ['00000000-0000-0000-0000-000000000000', 'payment', provider]
+    );
+    if (r.rows.length === 0) throw new Error('Credentials not configured');
+    return JSON.parse(r.rows[0].settings || '{}');
+  }
+
+  async initializePayment({ userId, amount, currency, gateway, description }) {
+    if (gateway === 'stripe') {
+      const intent = await this.createSessionPaymentIntent(userId, userId, amount, currency || 'usd');
+      return { provider: 'stripe', clientSecret: intent.data.clientSecret, amount, currency: currency || 'usd' };
+    }
+    if (gateway === 'chapa') {
+      const creds = await this.getGatewayCredentials('chapa');
+      const ref = `mrcreams_${Date.now()}`;
+      const res = await axios.post('https://api.chapa.co/v1/transaction/initialize', {
+        amount: amount.toFixed(2),
+        currency: (currency || 'ETB').toUpperCase(),
+        email: creds.email || 'customer@example.com',
+        first_name: creds.firstName || 'Customer',
+        last_name: creds.lastName || 'MR',
+        tx_ref: ref,
+        callback_url: creds.callbackUrl || 'https://mrcreams.local/payment/callback/chapa',
+        return_url: creds.returnUrl || 'https://mrcreams.local/payment/return/chapa',
+        title: description || 'MR.CREAMS Subscription'
+      }, { headers: { Authorization: `Bearer ${creds.secretKey}` } });
+      const url = res.data?.data?.checkout_url;
+      await query(
+        `INSERT INTO payment_intents (user_id, provider, intent_id, amount, currency, status, metadata, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [userId, 'chapa', ref, amount, (currency || 'ETB').toUpperCase(), 'pending', JSON.stringify({ title: description })]
+      );
+      return { provider: 'chapa', checkoutUrl: url, txRef: ref, amount, currency: (currency || 'ETB').toUpperCase() };
+    }
+    if (gateway === 'santimpay') {
+      const creds = await this.getGatewayCredentials('santimpay');
+      const ref = `mrcreams_${Date.now()}`;
+      const res = await axios.post(`${creds.endpoint}/checkout`, {
+        amount: amount.toFixed(2),
+        currency: (currency || 'ETB').toUpperCase(),
+        merchant_id: creds.merchantId,
+        callback_url: creds.callbackUrl,
+        return_url: creds.returnUrl,
+        reference: ref,
+        description: description || 'MR.CREAMS Subscription'
+      }, { headers: { Authorization: `Bearer ${creds.apiKey}` } });
+      const url = res.data?.data?.payment_url || res.data?.payment_url;
+      await query(
+        `INSERT INTO payment_intents (user_id, provider, intent_id, amount, currency, status, metadata, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [userId, 'santimpay', ref, amount, (currency || 'ETB').toUpperCase(), 'pending', JSON.stringify({ description })]
+      );
+      return { provider: 'santimpay', checkoutUrl: url, reference: ref, amount, currency: (currency || 'ETB').toUpperCase() };
+    }
+    throw new Error('Unsupported gateway');
+  }
+
+  async handleWebhook(gateway, rawBody, headers) {
+    if (gateway === 'stripe') {
+      const sig = headers['stripe-signature'];
+      const secret = process.env.STRIPE_WEBHOOK_SECRET;
+      const event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+      await this.handleStripeWebhook(event);
+      return { success: true };
+    }
+    if (gateway === 'chapa') {
+      const creds = await this.getGatewayCredentials('chapa');
+      const signature = headers['chapa-signature'] || headers['x-chapa-signature'];
+      const expected = crypto.createHmac('sha256', creds.secretKey).update(Buffer.isBuffer(rawBody) ? rawBody : JSON.stringify(rawBody)).digest('hex');
+      if (signature !== expected) throw new Error('Invalid signature');
+      const event = Buffer.isBuffer(rawBody) ? JSON.parse(rawBody.toString()) : rawBody;
+      const status = event?.status;
+      const ref = event?.tx_ref;
+      if (status === 'success') {
+        await query('UPDATE payment_intents SET status = $1, updated_at = NOW() WHERE intent_id = $2', ['succeeded', ref]);
+      } else {
+        await query('UPDATE payment_intents SET status = $1, updated_at = NOW() WHERE intent_id = $2', ['failed', ref]);
+      }
+      return { success: true };
+    }
+    if (gateway === 'santimpay') {
+      const creds = await this.getGatewayCredentials('santimpay');
+      const signature = headers['santimpay-signature'] || headers['x-signature'];
+      const expected = crypto.createHmac('sha256', creds.webhookSecret).update(Buffer.isBuffer(rawBody) ? rawBody : JSON.stringify(rawBody)).digest('hex');
+      if (signature !== expected) throw new Error('Invalid signature');
+      const event = Buffer.isBuffer(rawBody) ? JSON.parse(rawBody.toString()) : rawBody;
+      const ref = event?.reference;
+      const ok = event?.status === 'success';
+      await query('UPDATE payment_intents SET status = $1, updated_at = NOW() WHERE intent_id = $2', [ok ? 'succeeded' : 'failed', ref]);
+      return { success: true };
+    }
+    throw new Error('Unsupported gateway');
   }
 
   /**

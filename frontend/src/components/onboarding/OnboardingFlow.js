@@ -6,6 +6,7 @@ import GoalsPreferences from './GoalsPreferences';
 import EmotionalSnapshot from './EmotionalSnapshot';
 import TermsPrivacy from './TermsPrivacy';
 import OnboardingEmergencyExit from './OnboardingEmergencyExit';
+import WelcomeScreen from './WelcomeScreen';
 
 const OnboardingFlow = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);

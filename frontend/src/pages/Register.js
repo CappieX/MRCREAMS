@@ -25,7 +25,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useTheme } from '@mui/material/styles';
 
 const Register = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [gender, setGender] = useState('male');
@@ -76,10 +76,15 @@ const Register = () => {
     }
     
     try {
-      await register(username, password, gender);
+      const normalizedEmail = (email || '').trim().toLowerCase();
+      const userPayload = {
+        user_type: 'individual',
+        metadata: { gender }
+      };
+      await register(normalizedEmail, password, userPayload);
       navigate('/onboarding');
     } catch (error) {
-      setRegisterError(error.response?.data?.error || 'Registration failed. Please try again.');
+      setRegisterError(error?.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -136,15 +141,15 @@ const Register = () => {
               margin="normal"
               required
               fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
+              id="email"
+              label="Email"
+              name="email"
+              autoComplete="email"
               autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={isSubmitting}
-              helperText="Username is case-insensitive"
+              helperText="Use a valid email address"
             />
             <TextField
               margin="normal"
