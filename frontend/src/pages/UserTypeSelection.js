@@ -1,29 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  Button,
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  Paper,
-  useTheme,
-  alpha
-} from '@mui/material';
-import {
-  People as PeopleIcon,
-  Business as BusinessIcon,
-  ArrowForward as ArrowForwardIcon,
-  Login as LoginIcon,
-  Psychology as PsychologyIcon,
-  Support as SupportIcon
-} from '@mui/icons-material';
+import { AuthPageShell } from '../components/custom/CustomUI';
+import { BrandButton } from '../components/custom/Button';
+import { BrandText } from '../components/custom/Typography';
+import { BRAND_COLORS, BRAND_SPACING, BRAND_RADII } from '../assets/brand';
 
 const UserTypeSelection = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
 
   const handleUserTypeSelection = (userType) => {
     if (userType === 'client') {
@@ -42,271 +25,272 @@ const UserTypeSelection = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      {/* Header */}
-      <Box
-        sx={{
-          py: 4,
-          background: `linear-gradient(135deg, ${alpha('#4A90E2', 0.1)} 0%, ${alpha('#8B5FBF', 0.1)} 100%)`,
-          borderBottom: `1px solid ${alpha('#4A90E2', 0.1)}`
+    <AuthPageShell
+      title="How would you like to use MR.CREAMS?"
+      subtitle="Choose the option that best describes your relationship with the platform."
+      footer={
+        <div
+          style={{
+            textAlign: 'center'
+          }}
+        >
+          <BrandText variant="caption" tone="muted">
+            Already using MR.CREAMS?
+          </BrandText>
+          <div
+            style={{
+              marginTop: 6,
+              display: 'flex',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: 8
+            }}
+          >
+            <button
+              type="button"
+              onClick={handleLogin}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+                fontSize: 13,
+                color: 'rgba(15,23,42,0.9)',
+                textDecoration: 'underline'
+              }}
+            >
+              Sign in
+            </button>
+            <span
+              style={{
+                fontSize: 13,
+                color: 'rgba(148,163,184,0.9)'
+              }}
+            >
+              •
+            </span>
+            <button
+              type="button"
+              onClick={handleProLogin}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+                fontSize: 13,
+                color: 'rgba(15,23,42,0.9)',
+                textDecoration: 'underline'
+              }}
+            >
+              Professional login
+            </button>
+          </div>
+        </div>
+      }
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: BRAND_SPACING.md
         }}
       >
-        <Container maxWidth="lg">
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h4" fontWeight="bold" sx={{ color: '#4A90E2' }}>
-              MR.CREAMS
-            </Typography>
-            <Button
-              variant="outlined"
-              startIcon={<LoginIcon />}
-              onClick={handleLogin}
-              sx={{
-                borderColor: '#4A90E2',
-                color: '#4A90E2',
-                '&:hover': {
-                  borderColor: '#357ABD',
-                  bgcolor: alpha('#4A90E2', 0.1)
-                }
+        <BrandText variant="body" tone="muted">
+          Pick what describes you today. You can still explore other roles later.
+        </BrandText>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: BRAND_SPACING.sm
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => handleUserTypeSelection('client')}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              borderRadius: BRAND_RADII.lg,
+              border: `1px solid rgba(10,37,64,0.12)`,
+              padding: BRAND_SPACING.md,
+              background: '#ffffff',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: BRAND_SPACING.sm,
+              cursor: 'pointer',
+              boxShadow: BRAND_COLORS.teal
+                ? '0 14px 30px rgba(15,23,42,0.06)'
+                : 'none'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: BRAND_SPACING.sm
               }}
             >
-              Sign In
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<BusinessIcon />}
-              onClick={handleProLogin}
-              sx={{ ml: 2, bgcolor: '#8B5FBF', '&:hover': { bgcolor: '#7B4F9F' } }}
-            >
-              Pro Login
-            </Button>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* Main Content */}
-      <Container maxWidth="md" sx={{ py: 8 }}>
-        <Box textAlign="center" mb={6}>
-          <Typography variant="h3" fontWeight="bold" gutterBottom sx={{ color: 'text.primary' }}>
-            How would you like to use MR.CREAMS?
-          </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-            Choose the option that best describes your relationship with our platform
-          </Typography>
-        </Box>
-        
-        <Grid container spacing={4}>
-          {/* End User Card */}
-          <Grid item xs={12} md={6}>
-            <Card 
-              sx={{ 
-                p: 4, 
-                cursor: 'pointer', 
-                height: '100%',
-                borderRadius: 3,
-                border: `2px solid ${alpha('#4A90E2', 0.2)}`,
-                '&:hover': {
-                  borderColor: '#4A90E2',
-                  transform: 'translateY(-5px)',
-                  boxShadow: '0 15px 35px rgba(0,0,0,0.1)'
-                },
-                transition: 'all 0.3s ease'
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(0,180,216,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 22
+                }}
+              >
+                💞
+              </div>
+              <div>
+                <BrandText variant="h5">
+                  For my relationship
+                </BrandText>
+                <BrandText variant="caption" tone="muted">
+                  Individuals and couples improving communication and emotional connection.
+                </BrandText>
+              </div>
+            </div>
+            <BrandText variant="body" tone="muted">
+              Get guided conflict support, emotion check-ins, and shared progress dashboards for
+              you and your partner.
+            </BrandText>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 6
               }}
-              onClick={() => handleUserTypeSelection('client')}
             >
-              <CardContent sx={{ textAlign: 'center', p: 0 }}>
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    bgcolor: alpha('#4A90E2', 0.1),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mx: 'auto',
-                    mb: 3
+              {['Couples', 'Individuals', 'Dating', 'Married'].map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    paddingInline: 10,
+                    paddingBlock: 4,
+                    borderRadius: 999,
+                    backgroundColor: 'rgba(0,180,216,0.08)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: BRAND_COLORS.teal
                   }}
                 >
-                  <PeopleIcon sx={{ fontSize: 40, color: '#4A90E2' }} />
-                </Box>
-                
-                <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: 'text.primary' }}>
-                  For My Relationship
-                </Typography>
-                
-                <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 3 }}>
-                  I want to improve my relationship, resolve conflicts, and enhance emotional connection with my partner.
-                </Typography>
-
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#4A90E2', mb: 1 }}>
-                    Perfect for:
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                    {['Couples', 'Individuals', 'Dating', 'Married'].map((tag) => (
-                      <Paper
-                        key={tag}
-                        sx={{
-                          px: 2,
-                          py: 0.5,
-                          bgcolor: alpha('#4A90E2', 0.1),
-                          color: '#4A90E2',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        {tag}
-                      </Paper>
-                    ))}
-                  </Box>
-                </Box>
-
-                <Button 
-                  variant="contained" 
-                  fullWidth
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{
-                    bgcolor: '#4A90E2',
-                    py: 1.5,
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold',
-                    borderRadius: 2,
-                    '&:hover': {
-                      bgcolor: '#357ABD'
-                    }
-                  }}
-                >
-                  Continue as User
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Company User Card */}
-          <Grid item xs={12} md={6}>
-            <Card 
-              sx={{ 
-                p: 4, 
-                cursor: 'pointer', 
-                height: '100%',
-                borderRadius: 3,
-                border: `2px solid ${alpha('#8B5FBF', 0.2)}`,
-                '&:hover': {
-                  borderColor: '#8B5FBF',
-                  transform: 'translateY(-5px)',
-                  boxShadow: '0 15px 35px rgba(0,0,0,0.1)'
-                },
-                transition: 'all 0.3s ease'
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <BrandButton
+              type="button"
+              style={{
+                marginTop: 4,
+                width: '100%'
               }}
-              onClick={() => handleUserTypeSelection('professional')}
             >
-              <CardContent sx={{ textAlign: 'center', p: 0 }}>
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    bgcolor: alpha('#8B5FBF', 0.1),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mx: 'auto',
-                    mb: 3
+              Continue as user
+            </BrandButton>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleUserTypeSelection('professional')}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              borderRadius: BRAND_RADII.lg,
+              border: `1px solid rgba(76,81,191,0.28)`,
+              padding: BRAND_SPACING.md,
+              background: '#ffffff',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: BRAND_SPACING.sm,
+              cursor: 'pointer',
+              boxShadow: '0 14px 30px rgba(15,23,42,0.06)'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: BRAND_SPACING.sm
+              }}
+            >
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(139,95,191,0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 22
+                }}
+              >
+                🩺
+              </div>
+              <div>
+                <BrandText variant="h5">
+                  For professional use
+                </BrandText>
+                <BrandText variant="caption" tone="muted">
+                  Therapists, admins, support teams, executives and super admins.
+                </BrandText>
+              </div>
+            </div>
+            <BrandText variant="body" tone="muted">
+              Access MR.CREAMS Pro dashboards, session analytics, governance tools and organization
+              controls.
+            </BrandText>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 6
+              }}
+            >
+              {['Therapists', 'Counselors', 'Admins', 'Organizations'].map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    paddingInline: 10,
+                    paddingBlock: 4,
+                    borderRadius: 999,
+                    backgroundColor: 'rgba(139,95,191,0.1)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: '#8B5FBF'
                   }}
                 >
-                  <BusinessIcon sx={{ fontSize: 40, color: '#8B5FBF' }} />
-                </Box>
-                
-                <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: 'text.primary' }}>
-                  For Professional Use
-                </Typography>
-                
-                <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 3 }}>
-                  I'm a therapist, counselor, administrator, or professional helping others with relationship guidance.
-                </Typography>
-
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#8B5FBF', mb: 1 }}>
-                    Perfect for:
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                    {['Therapists', 'Counselors', 'Admins', 'Organizations'].map((tag) => (
-                      <Paper
-                        key={tag}
-                        sx={{
-                          px: 2,
-                          py: 0.5,
-                          bgcolor: alpha('#8B5FBF', 0.1),
-                          color: '#8B5FBF',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        {tag}
-                      </Paper>
-                    ))}
-                  </Box>
-                </Box>
-
-                <Button 
-                  variant="outlined" 
-                  fullWidth
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{
-                    borderColor: '#8B5FBF',
-                    color: '#8B5FBF',
-                    py: 1.5,
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold',
-                    borderRadius: 2,
-                    '&:hover': {
-                      borderColor: '#7B4F9F',
-                      bgcolor: alpha('#8B5FBF', 0.1)
-                    }
-                  }}
-                >
-                  Continue as Professional
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Additional Information */}
-        <Box sx={{ mt: 8, textAlign: 'center' }}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: 'text.primary' }}>
-            Need Help Choosing?
-          </Typography>
-          <Typography variant="body1" color="text.secondary" paragraph>
-            If you're unsure which option is right for you, our support team is here to help.
-          </Typography>
-          
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button
-              variant="text"
-              startIcon={<SupportIcon />}
-              sx={{ color: '#4A90E2' }}
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <BrandButton
+              type="button"
+              variant="outline"
+              style={{
+                marginTop: 4,
+                width: '100%'
+              }}
             >
-              Contact Support
-            </Button>
-            <Button
-              variant="text"
-              startIcon={<PsychologyIcon />}
-              sx={{ color: '#8B5FBF' }}
-            >
-              Learn More
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Trust Indicators */}
-        <Box sx={{ mt: 6, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            🔒 Secure & Private • 💝 Trusted by thousands • 🚀 Start free today
-          </Typography>
-        </Box>
-      </Container>
-    </Box>
+              Continue as professional
+            </BrandButton>
+          </button>
+        </div>
+        <BrandText
+          variant="caption"
+          tone="muted"
+          style={{
+            textAlign: 'center',
+            marginTop: 4
+          }}
+        >
+          🔒 Secure and private • 💝 Trusted by teams and couples • 🚀 Start free today
+        </BrandText>
+      </div>
+    </AuthPageShell>
   );
 };
 

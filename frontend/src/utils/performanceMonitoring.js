@@ -65,6 +65,10 @@ const sendPerformanceMetrics = (metrics) => {
 
 // Observe resource timing
 const observeResourceTiming = () => {
+  if (typeof PerformanceObserver === 'undefined') {
+    return;
+  }
+
   const observer = new PerformanceObserver((list) => {
     const entries = list.getEntries();
     
@@ -118,6 +122,10 @@ const observeLongTasks = () => {
 
 // Track first contentful paint
 export const trackFCP = () => {
+  if (typeof PerformanceObserver === 'undefined') {
+    return;
+  }
+
   const observer = new PerformanceObserver((list) => {
     const entries = list.getEntries();
     entries.forEach(entry => {
@@ -136,6 +144,10 @@ export const trackFCP = () => {
 
 // Track largest contentful paint
 export const trackLCP = () => {
+  if (typeof PerformanceObserver === 'undefined') {
+    return;
+  }
+
   const observer = new PerformanceObserver((list) => {
     const entries = list.getEntries();
     const lastEntry = entries[entries.length - 1];
@@ -153,6 +165,10 @@ export const trackLCP = () => {
 
 // Track cumulative layout shift
 export const trackCLS = () => {
+  if (typeof PerformanceObserver === 'undefined') {
+    return;
+  }
+
   let clsValue = 0;
   let clsEntries = [];
   

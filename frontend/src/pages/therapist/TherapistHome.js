@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Box, Typography, Grid, Card, CardContent, Avatar, Chip, Button,
-  LinearProgress, List, ListItem, ListItemAvatar, ListItemText, IconButton
+  LinearProgress, List, ListItem, ListItemAvatar, ListItemText, IconButton, Badge
 } from '@mui/material';
 import {
   Psychology as PsychologyIcon,

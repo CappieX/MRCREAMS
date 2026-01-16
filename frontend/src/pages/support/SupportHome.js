@@ -19,7 +19,7 @@ import DashboardCard from '../../components/dashboard/DashboardCard';
 import MetricCard from '../../components/dashboard/MetricCard';
 import { dashboardTheme } from '../../constants/dashboardTheme';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const SupportHome = () => {
   const navigate = useNavigate();

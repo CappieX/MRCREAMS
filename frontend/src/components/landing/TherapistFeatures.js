@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Typography, Grid, Card, CardContent, Chip, useTheme, alpha, Button } from '@mui/material';
-import { Security, BarChart, AutoFixHigh, People, Power, School } from '@mui/icons-material';
+import { BrandText } from '../custom/Typography';
+import { BrandButton } from '../custom/Button';
+import { BRAND_COLORS, BRAND_RADII, BRAND_SHADOWS, BRAND_SPACING } from '../../assets/brand';
 
 const features = [
   {
@@ -42,81 +43,171 @@ const features = [
 ];
 
 const TherapistFeatures = () => {
-  const theme = useTheme();
-
   return (
-    <Box sx={{ py: 8, bgcolor: 'background.default' }}>
-      <Box sx={{ textAlign: 'center', mb: 8 }}>
-        <Typography variant="h2" sx={{ fontWeight: 'bold', mb: 2 }}>
-          A Smarter Way to Practice
-        </Typography>
-        <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, mx: 'auto' }}>
-          Our platform provides therapists with the tools to deliver exceptional care and achieve better client outcomes.
-        </Typography>
-      </Box>
-      <Grid container spacing={4}>
-        {features.map((feature, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card
-              sx={{
+    <section
+      style={{
+        padding: `${BRAND_SPACING.xl * 2}px ${BRAND_SPACING.md}px`,
+        backgroundColor: '#f8fafc'
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: '0 auto'
+        }}
+      >
+        <div
+          style={{
+            textAlign: 'center',
+            marginBottom: BRAND_SPACING.xl * 1.5
+          }}
+        >
+          <BrandText variant="h2">
+            A Smarter Way to Practice
+          </BrandText>
+          <BrandText
+            variant="body"
+            tone="muted"
+            style={{
+              maxWidth: 600,
+              margin: '12px auto 0'
+            }}
+          >
+            Our platform provides therapists with the tools to deliver exceptional care and achieve better client outcomes.
+          </BrandText>
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: BRAND_SPACING.lg
+          }}
+        >
+          {features.map((feature, index) => (
+            <article
+              key={index}
+              style={{
                 height: '100%',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-5px)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-                },
+                borderRadius: BRAND_RADII.lg,
+                boxShadow: BRAND_SHADOWS.subtle,
+                backgroundColor: '#ffffff',
+                padding: BRAND_SPACING.lg,
+                display: 'flex',
+                flexDirection: 'column',
+                transition: 'transform 160ms ease-out, box-shadow 160ms ease-out'
               }}
             >
-              <CardContent sx={{ p: 4 }}>
-                <Box sx={{ fontSize: '3rem', mb: 2 }}>{feature.icon}</Box>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  {feature.title}
-                </Typography>
-                <Typography sx={{ color: 'text.secondary', mb: 3, minHeight: 60 }}>
-                  {feature.description}
-                </Typography>
-                {feature.badge && (
-                  <Chip label={feature.badge} color="success" sx={{ fontWeight: 'bold' }} />
-                )}
-                {feature.feature && (
-                  <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                    {feature.feature}
-                  </Typography>
-                )}
-                {feature.timeSaved && (
-                  <Typography variant="body2" sx={{ color: 'secondary.main', fontWeight: 'bold' }}>
-                    {feature.timeSaved}
-                  </Typography>
-                )}
-                {feature.logos && (
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 2 }}>
-                    {feature.logos.map((logo, i) => (
-                      <Chip key={i} label={logo} size="small" />
-                    ))}
-                  </Box>
-                )}
-                <Button
-                  variant="text"
-                  sx={{
-                    mt: 3,
-                    fontWeight: 'bold',
-                    color: 'primary.main',
-                    textTransform: 'none',
-                    '&:hover': {
-                      bgcolor: alpha(theme.palette.primary.main, 0.08),
-                    },
+              <div style={{ fontSize: 32, marginBottom: BRAND_SPACING.sm }}>
+                {feature.icon}
+              </div>
+              <BrandText
+                variant="h4"
+                style={{
+                  marginBottom: BRAND_SPACING.sm
+                }}
+              >
+                {feature.title}
+              </BrandText>
+              <BrandText
+                variant="body"
+                tone="muted"
+                style={{
+                  marginBottom: BRAND_SPACING.md,
+                  minHeight: 60
+                }}
+              >
+                {feature.description}
+              </BrandText>
+              {feature.badge && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingInline: 10,
+                    paddingBlock: 4,
+                    borderRadius: 999,
+                    backgroundColor: 'rgba(22,163,74,0.1)',
+                    color: '#15803d',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    marginBottom: BRAND_SPACING.sm
                   }}
                 >
-                  Learn More &rarr;
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+                  {feature.badge}
+                </span>
+              )}
+              {feature.feature && (
+                <BrandText
+                  variant="caption"
+                  tone="soft"
+                  style={{
+                    color: BRAND_COLORS.teal,
+                    marginBottom: 4
+                  }}
+                >
+                  {feature.feature}
+                </BrandText>
+              )}
+              {feature.timeSaved && (
+                <BrandText
+                  variant="caption"
+                  tone="soft"
+                  style={{
+                    color: BRAND_COLORS.coral,
+                    marginBottom: 4
+                  }}
+                >
+                  {feature.timeSaved}
+                </BrandText>
+              )}
+              {feature.logos && (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 6,
+                    alignItems: 'center',
+                    marginTop: BRAND_SPACING.sm
+                  }}
+                >
+                  {feature.logos.map((logo, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        paddingInline: 10,
+                        paddingBlock: 4,
+                        borderRadius: 999,
+                        backgroundColor: 'rgba(15,23,42,0.04)',
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: 'rgba(15,23,42,0.8)'
+                      }}
+                    >
+                      {logo}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div style={{ marginTop: 'auto', paddingTop: BRAND_SPACING.md }}>
+                <BrandButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  style={{
+                    paddingInline: 0,
+                    justifyContent: 'flex-start',
+                    color: BRAND_COLORS.teal
+                  }}
+                >
+                  Learn more →
+                </BrandButton>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 

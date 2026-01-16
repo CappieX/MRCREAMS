@@ -1,68 +1,123 @@
-import React from 'react';
-import { Box, Typography, Card, CardContent, Grid } from '@mui/material';
-import {
-  TrendingUp as TrendingUpIcon,
-  People as PeopleIcon,
-  AttachMoney as AttachMoneyIcon,
-  Assessment as AssessmentIcon
-} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { BrandCard } from '../../components/custom/Card';
+import { BrandText } from '../../components/custom/Typography';
+import { BRAND_COLORS } from '../../assets/brand';
+import { useAuth } from '../../context/AuthContext';
 
 const ExecutiveDashboard = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Executive Dashboard - Business Analytics</Typography>
-      
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <TrendingUpIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Revenue</Typography>
-              </Box>
-              <Typography variant="h5">$128,450</Typography>
-              <Typography variant="caption" color="text.secondary">+12% this month</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <PeopleIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Active Users</Typography>
-              </Box>
-              <Typography variant="h5">2,845</Typography>
-              <Typography variant="caption" color="text.secondary">+5% this month</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <AttachMoneyIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Profit</Typography>
-              </Box>
-              <Typography variant="h5">$89,450</Typography>
-              <Typography variant="caption" color="text.secondary">+8% this month</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <AssessmentIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Engagement</Typography>
-              </Box>
-              <Typography variant="h5">78%</Typography>
-              <Typography variant="caption" color="text.secondary">+3% this month</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Box>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline underline-offset-2"
+        >
+          Logout
+        </button>
+      </div>
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-amber-50 via-orange-50 to-slate-50 px-4 py-4 sm:px-6 sm:py-5">
+        <div className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-amber-100 blur-3xl" />
+        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <BrandText variant="h2">
+              Executive insights
+            </BrandText>
+            <BrandText variant="body" tone="soft">
+              A single, calm view of the health of your relationships, revenue, and engagement across the MR.CREAMS platform.
+            </BrandText>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-right text-xs text-slate-600 sm:text-sm">
+            <div>
+              <div className="font-semibold text-slate-900">
+                $128,450
+              </div>
+              <div className="text-emerald-600">
+                +12% revenue this month
+              </div>
+            </div>
+            <div>
+              <div className="font-semibold text-slate-900">
+                2,845
+              </div>
+              <div className="text-emerald-600">
+                active users
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <BrandCard
+          tone="surface"
+          header={{
+            title: 'Revenue',
+            meta: 'Monthly run rate'
+          }}
+        >
+          <BrandText variant="h3" style={{ color: BRAND_COLORS.coral }}>
+            $128,450
+          </BrandText>
+          <BrandText variant="caption" tone="soft">
+            +12% vs last month · driven by new organization rollouts
+          </BrandText>
+        </BrandCard>
+
+        <BrandCard
+          tone="surface"
+          header={{
+            title: 'Active users',
+            meta: 'Last 30 days'
+          }}
+        >
+          <BrandText variant="h3" style={{ color: BRAND_COLORS.teal }}>
+            2,845
+          </BrandText>
+          <BrandText variant="caption" tone="soft">
+            +5% vs last month · strong therapist and support adoption
+          </BrandText>
+        </BrandCard>
+
+        <BrandCard
+          tone="surface"
+          header={{
+            title: 'Profit',
+            meta: 'Contribution margin'
+          }}
+        >
+          <BrandText variant="h3" style={{ color: BRAND_COLORS.deepBlue }}>
+            $89,450
+          </BrandText>
+          <BrandText variant="caption" tone="soft">
+            +8% vs last month · infrastructure efficiency and retention
+          </BrandText>
+        </BrandCard>
+
+        <BrandCard
+          tone="surface"
+          header={{
+            title: 'Engagement',
+            meta: 'Session quality'
+          }}
+        >
+          <BrandText variant="h3" style={{ color: BRAND_COLORS.coral }}>
+            78%
+          </BrandText>
+          <BrandText variant="caption" tone="soft">
+            +3% vs last month · more check-ins and completed guidance flows
+          </BrandText>
+        </BrandCard>
+      </div>
+    </div>
   );
 };
 

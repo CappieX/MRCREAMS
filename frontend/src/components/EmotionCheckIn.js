@@ -23,6 +23,7 @@ import {
   TrendingUp as TrendingUpIcon,
   Insights as InsightsIcon
 } from '@mui/icons-material';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const EmotionCheckIn = () => {
   const theme = useTheme();
@@ -58,7 +59,7 @@ const EmotionCheckIn = () => {
       icon: <SadIcon />
     },
     { 
-      id: 'sad', 
+      id: 'sadness', 
       label: 'Sad', 
       emoji: '😢', 
       color: '#4A90E2',
@@ -66,7 +67,7 @@ const EmotionCheckIn = () => {
       icon: <SadIcon />
     },
     { 
-      id: 'angry', 
+      id: 'anger', 
       label: 'Angry', 
       emoji: '😡', 
       color: '#FF6B6B',
@@ -93,7 +94,30 @@ const EmotionCheckIn = () => {
     
     setIsAnalyzing(true);
     
-    // Simulate AI analysis
+    try {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        await axios.post(
+          '/api/emotions/checkin',
+          {
+            primaryEmotion: selectedEmotion.id,
+            secondaryEmotions: [],
+            intensity: emotionalIntensity,
+            context,
+            triggers: [],
+            copingStrategies: []
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+      }
+    } catch (error) {
+      console.error('Emotion check-in failed:', error);
+    }
+
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     const insights = generateAIInsights(selectedEmotion, emotionalIntensity, context);

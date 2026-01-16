@@ -1,10 +1,9 @@
-import React from 'react';
-import { Box, Container, Typography, Grid, Card, CardContent, Chip, alpha, Button } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { BrandText } from '../components/custom/Typography';
+import { BrandButton } from '../components/custom/Button';
+import { BRAND_COLORS, BRAND_RADII, BRAND_SHADOWS, BRAND_SPACING } from '../assets/brand';
 import { useNavigate } from 'react-router-dom';
 
 const Features = () => {
-  const theme = useTheme();
   const navigate = useNavigate();
   const features = [
     { title: 'Emotion Analysis', description: 'Real-time detection across 12+ emotional dimensions', badge: 'AI-Powered' },
@@ -15,45 +14,83 @@ const Features = () => {
   ];
 
   return (
-    <Box sx={{ py: 8, bgcolor: 'background.default' }}>
-      <Container maxWidth="lg">
-        <Typography variant="h3" fontWeight="bold" sx={{ mb: 2, color: 'text.primary' }}>
+    <section
+      style={{
+        padding: `${BRAND_SPACING.xl * 2}px ${BRAND_SPACING.md}px`,
+        backgroundColor: '#f8fafc'
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: '0 auto'
+        }}
+      >
+        <BrandText variant="h2" style={{ marginBottom: BRAND_SPACING.sm }}>
           Features
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 6 }}>
+        </BrandText>
+        <BrandText
+          variant="body"
+          tone="muted"
+          style={{ marginBottom: BRAND_SPACING.xl }}
+        >
           Powerful tools for couples and professionals with a unified experience.
-        </Typography>
-        <Grid container spacing={4}>
+        </BrandText>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: BRAND_SPACING.lg
+          }}
+        >
           {features.map((f) => (
-            <Grid item xs={12} md={6} lg={4} key={f.title}>
-              <Card
-                sx={{
-                  height: '100%',
-                  borderRadius: 3,
-                  border: `1px solid ${alpha('#0A2540', 0.08)}`,
-                  boxShadow: '0 10px 30px rgba(10, 37, 64, 0.06)',
+            <article
+              key={f.title}
+              style={{
+                height: '100%',
+                borderRadius: BRAND_RADII.lg,
+                border: '1px solid rgba(10,37,64,0.08)',
+                boxShadow: BRAND_SHADOWS.subtle,
+                backgroundColor: '#ffffff',
+                padding: BRAND_SPACING.lg
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingInline: 10,
+                  paddingBlock: 4,
+                  borderRadius: 999,
+                  backgroundColor: 'rgba(0,180,216,0.12)',
+                  color: BRAND_COLORS.teal,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  marginBottom: BRAND_SPACING.sm
                 }}
               >
-                <CardContent sx={{ p: 4 }}>
-                  <Chip label={f.badge} size="small" sx={{ mb: 2, bgcolor: alpha('#00B4D8', 0.12) }} />
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-                    {f.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {f.description}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+                {f.badge}
+              </span>
+              <BrandText variant="h4" style={{ marginBottom: BRAND_SPACING.xs }}>
+                {f.title}
+              </BrandText>
+              <BrandText variant="body" tone="muted">
+                {f.description}
+              </BrandText>
+            </article>
           ))}
-        </Grid>
-        <Box sx={{ mt: 6 }}>
-          <Button variant="contained" sx={{ bgcolor: '#00B4D8' }} onClick={() => navigate('/register')}>
+        </div>
+        <div style={{ marginTop: BRAND_SPACING.xl }}>
+          <BrandButton
+            type="button"
+            onClick={() => navigate('/register')}
+          >
             Start Free Trial
-          </Button>
-        </Box>
-      </Container>
-    </Box>
+          </BrandButton>
+        </div>
+      </div>
+    </section>
   );
 };
 

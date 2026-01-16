@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Select, Button, Space, Alert } from 'antd';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 export default function PaymentGatewayConfig() {
   const [loading, setLoading] = useState(false);
   const [provider, setProvider] = useState('stripe');
   const [saved, setSaved] = useState(null);
+   const [error, setError] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -14,11 +15,15 @@ export default function PaymentGatewayConfig() {
 
   const onFinish = async (values) => {
     setLoading(true);
+    setError(null);
     try {
       const token = localStorage.getItem('authToken');
       const cfg = { headers: { Authorization: `Bearer ${token}` } };
       const res = await axios.post('/api/admin/payment/credentials', { provider, credentials: values }, cfg);
       setSaved(res.data?.data || null);
+    } catch (err) {
+      console.error('Failed to save payment credentials:', err);
+      setError('Failed to save payment credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -27,6 +32,7 @@ export default function PaymentGatewayConfig() {
   return (
     <Card title="Payment Gateways">
       <Space direction="vertical" style={{ width: '100%' }} size="large">
+        {error && <Alert type="error" message={error} />}
         <Select value={provider} onChange={setProvider} options={[
           { value: 'stripe', label: 'Stripe' },
           { value: 'chapa', label: 'Chapa' },

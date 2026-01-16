@@ -62,10 +62,30 @@ export const AuthProvider = ({ children }) => {
         const msg = data?.error || data?.message || 'Registration failed';
         throw new Error(msg);
       }
-      const { user: newUser, token } = data || {};
-      if (token) localStorage.setItem('authToken', token);
-      const normalized = normalizeUser(newUser);
+
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const loginContentType = loginResponse.headers.get('content-type');
+      const loginData = loginContentType && loginContentType.includes('application/json') ? await loginResponse.json() : null;
+
+      if (!loginResponse.ok) {
+        const msg = loginData?.error || loginData?.message || 'Login after registration failed';
+        throw new Error(msg);
+      }
+
+      const payloadUser = loginData.user || loginData.data?.user || loginData;
+      const token = loginData.token || loginData.sessionToken;
+      const normalized = normalizeUser(payloadUser);
       setUser(normalized);
+      localStorage.setItem('user', JSON.stringify(normalized));
+      if (token) {
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('token', token);
+      }
       return normalized;
     } catch (error) {
       console.error('Registration error:', error);
@@ -146,7 +166,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updates) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('/api/auth/profile', {
+      const response = await fetch('/api/auth/user/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -160,9 +180,22 @@ export const AuthProvider = ({ children }) => {
         const payloadUser = data.user || data.data?.user || data;
         const normalized = normalizeUser(payloadUser);
         setUser(normalized);
+        localStorage.setItem('user', JSON.stringify(normalized));
         return normalized;
       } else {
-        throw new Error('Profile update failed');
+        let message = 'Profile update failed';
+        try {
+          const errJson = await response.json();
+          message = errJson?.error || errJson?.message || message;
+        } catch (e) {
+          try {
+            const text = await response.text();
+            if (text) {
+              message = text;
+            }
+          } catch (_) {}
+        }
+        throw new Error(message);
       }
     } catch (error) {
       console.error('Profile update error:', error);
@@ -172,21 +205,20 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async (token) => {
     try {
-      const response = await fetch('/api/auth/verify', {
+      const response = await fetch('/api/auth/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        if (!response.ok) {
-          const errJson = await response.json().catch(() => ({}));
-          throw new Error(errJson?.error || 'Token verification failed');
-        }
-        const data = await response.json();
-        return data;
-      } else {
+      if (!contentType || !contentType.includes('application/json')) {
         const text = await response.text();
         throw new Error(text || 'Token verification failed');
       }
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson?.error || 'Token verification failed');
+      }
+      const data = await response.json();
+      return data.user || data.data?.user || data;
     } catch (error) {
       // Fallback: check if we have user data in localStorage
       const storedUser = localStorage.getItem('user');

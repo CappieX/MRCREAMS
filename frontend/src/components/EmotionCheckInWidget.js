@@ -17,6 +17,7 @@ import {
   Psychology as PsychologyIcon,
   EmojiEmotions as EmojiIcon
 } from '@mui/icons-material';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const emotionOptions = [
   { label: 'Calm', value: 1, color: '#4ECDC4', icon: '😌' },
@@ -37,7 +38,7 @@ const EmotionCheckInWidget = ({ onEmotionSubmit }) => {
     setCurrentEmotion(emotion.value);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (onEmotionSubmit) {
       onEmotionSubmit({
         emotion: selectedEmotion,
@@ -45,6 +46,46 @@ const EmotionCheckInWidget = ({ onEmotionSubmit }) => {
         relationshipSatisfaction,
         timestamp: new Date()
       });
+    }
+
+    if (!selectedEmotion) {
+      return;
+    }
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      return;
+    }
+
+    const label = selectedEmotion.label;
+    let primaryEmotion = 'neutral';
+    if (label === 'Calm') primaryEmotion = 'calm';
+    else if (label === 'Content') primaryEmotion = 'joy';
+    else if (label === 'Neutral') primaryEmotion = 'neutral';
+    else if (label === 'Stressed') primaryEmotion = 'anxious';
+    else if (label === 'Overwhelmed') primaryEmotion = 'anxious';
+
+    const intensity = Math.round((energyLevel + relationshipSatisfaction) / 2);
+
+    try {
+      await axios.post(
+        '/api/emotions/checkin',
+        {
+          primaryEmotion,
+          secondaryEmotions: [],
+          intensity,
+          context: 'Dashboard quick check-in',
+          triggers: [],
+          copingStrategies: []
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Dashboard emotion check-in failed:', error);
     }
   };
 

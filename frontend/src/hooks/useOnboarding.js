@@ -25,7 +25,7 @@ export const useOnboarding = () => {
       const profileData = {
         onboardingCompleted: true,
         onboardingCompletedAt: new Date().toISOString(),
-        userType: onboardingData.userType,
+        userType: onboardingData.userType?.id || onboardingData.userType,
         relationshipContext: onboardingData.relationshipContext,
         goalsPreferences: onboardingData.goalsPreferences,
         emotionalSnapshot: onboardingData.emotionalSnapshot,
@@ -44,6 +44,7 @@ export const useOnboarding = () => {
       }
     } catch (error) {
       console.error('Error completing onboarding:', error);
+      throw error;
     }
   };
 

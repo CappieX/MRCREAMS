@@ -1,5 +1,6 @@
-import React from 'react';
-import { Box, Container, Typography, Grid, Card, CardContent, Button } from '@mui/material';
+import { BrandText } from '../components/custom/Typography';
+import { BrandButton } from '../components/custom/Button';
+import { BRAND_RADII, BRAND_SHADOWS, BRAND_SPACING } from '../assets/brand';
 import { useNavigate } from 'react-router-dom';
 
 const items = [
@@ -12,35 +13,71 @@ const Resources = () => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ py: 8, bgcolor: 'background.default' }}>
-      <Container maxWidth="lg">
-        <Typography variant="h3" fontWeight="bold" sx={{ mb: 2 }}>
+    <section
+      style={{
+        padding: `${BRAND_SPACING.xl * 2}px ${BRAND_SPACING.md}px`,
+        backgroundColor: '#f8fafc'
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: '0 auto'
+        }}
+      >
+        <BrandText variant="h2" style={{ marginBottom: BRAND_SPACING.sm }}>
           Resources
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 6 }}>
+        </BrandText>
+        <BrandText
+          variant="body"
+          tone="muted"
+          style={{ marginBottom: BRAND_SPACING.xl }}
+        >
           Practical guides and insights to strengthen relationships.
-        </Typography>
-        <Grid container spacing={4}>
+        </BrandText>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: BRAND_SPACING.lg
+          }}
+        >
           {items.map((i) => (
-            <Grid item xs={12} md={4} key={i.title}>
-              <Card sx={{ borderRadius: 3 }}>
-                <CardContent sx={{ p: 4 }}>
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-                    {i.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {i.summary}
-                  </Typography>
-                  <Button variant="text" onClick={() => navigate('/register')}>
-                    Read
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
+            <article
+              key={i.title}
+              style={{
+                borderRadius: BRAND_RADII.lg,
+                boxShadow: BRAND_SHADOWS.subtle,
+                backgroundColor: '#ffffff',
+                padding: BRAND_SPACING.lg,
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
+              <BrandText variant="h4" style={{ marginBottom: BRAND_SPACING.xs }}>
+                {i.title}
+              </BrandText>
+              <BrandText
+                variant="body"
+                tone="muted"
+                style={{ marginBottom: BRAND_SPACING.md }}
+              >
+                {i.summary}
+              </BrandText>
+              <BrandButton
+                type="button"
+                variant="ghost"
+                size="sm"
+                style={{ paddingInline: 0, marginTop: 'auto' }}
+                onClick={() => navigate('/register')}
+              >
+                Read
+              </BrandButton>
+            </article>
           ))}
-        </Grid>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </section>
   );
 };
 

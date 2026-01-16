@@ -24,7 +24,7 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import StyledCard from '../components/StyledCard';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 

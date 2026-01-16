@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { dashboardTheme } from '../../constants/dashboardTheme';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const AllTickets = () => {
   const navigate = useNavigate();

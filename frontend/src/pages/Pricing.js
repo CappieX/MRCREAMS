@@ -1,5 +1,6 @@
-import React from 'react';
-import { Box, Container, Typography, Grid, Card, CardContent, Button, alpha } from '@mui/material';
+import { BrandText } from '../components/custom/Typography';
+import { BrandButton } from '../components/custom/Button';
+import { BRAND_COLORS, BRAND_RADII, BRAND_SHADOWS, BRAND_SPACING } from '../assets/brand';
 import { useNavigate } from 'react-router-dom';
 
 const tiers = [
@@ -11,51 +12,84 @@ const tiers = [
 const Pricing = () => {
   const navigate = useNavigate();
   return (
-    <Box sx={{ py: 8, bgcolor: 'background.default' }}>
-      <Container maxWidth="lg">
-        <Typography variant="h3" fontWeight="bold" sx={{ mb: 2 }}>
+    <section
+      style={{
+        padding: `${BRAND_SPACING.xl * 2}px ${BRAND_SPACING.md}px`,
+        backgroundColor: '#f8fafc'
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: '0 auto'
+        }}
+      >
+        <BrandText variant="h2" style={{ marginBottom: BRAND_SPACING.sm }}>
           Pricing
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 6 }}>
+        </BrandText>
+        <BrandText
+          variant="body"
+          tone="muted"
+          style={{ marginBottom: BRAND_SPACING.xl }}
+        >
           Simple, transparent plans for every stage of your journey.
-        </Typography>
-        <Grid container spacing={4}>
+        </BrandText>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: BRAND_SPACING.lg
+          }}
+        >
           {tiers.map((t) => (
-            <Grid item xs={12} md={4} key={t.name}>
-              <Card
-                sx={{
-                  height: '100%',
-                  borderRadius: 3,
-                  border: `1px solid ${alpha('#0A2540', 0.08)}`,
+            <article
+              key={t.name}
+              style={{
+                height: '100%',
+                borderRadius: BRAND_RADII.lg,
+                border: '1px solid rgba(10,37,64,0.08)',
+                boxShadow: BRAND_SHADOWS.subtle,
+                backgroundColor: '#ffffff',
+                padding: BRAND_SPACING.lg,
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
+              <BrandText variant="h4" style={{ marginBottom: BRAND_SPACING.xs }}>
+                {t.name}
+              </BrandText>
+              <BrandText
+                variant="h2"
+                style={{
+                  marginBottom: BRAND_SPACING.sm,
+                  color: BRAND_COLORS.teal
                 }}
               >
-                <CardContent sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
-                    {t.name}
-                  </Typography>
-                  <Typography variant="h3" fontWeight="bold" sx={{ mb: 2, color: '#00B4D8' }}>
-                    {t.price}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    {t.description}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    sx={{ bgcolor: '#00B4D8' }}
-                    onClick={() => {
-                      if (t.name === 'Professional') return navigate('/professional-login');
-                      return navigate('/register');
-                    }}
-                  >
-                    {t.cta}
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
+                {t.price}
+              </BrandText>
+              <BrandText
+                variant="body"
+                tone="muted"
+                style={{ marginBottom: BRAND_SPACING.lg }}
+              >
+                {t.description}
+              </BrandText>
+              <BrandButton
+                type="button"
+                style={{ marginTop: 'auto' }}
+                onClick={() => {
+                  if (t.name === 'Professional') return navigate('/professional-login');
+                  return navigate('/register');
+                }}
+              >
+                {t.cta}
+              </BrandButton>
+            </article>
           ))}
-        </Grid>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </section>
   );
 };
 

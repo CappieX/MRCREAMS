@@ -1,27 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Paper,
-  Container,
-  Alert,
-  CircularProgress,
-  InputAdornment,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Link
-} from '@mui/material';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import BusinessIcon from '@mui/icons-material/Business';
-import PsychologyIcon from '@mui/icons-material/Psychology';
+import { BrandButton } from '../components/custom/Button';
+import { BrandInput } from '../components/custom/Input';
+import { BrandText } from '../components/custom/Typography';
+import { AuthPageShell, NotificationBanner } from '../components/custom/CustomUI';
+import { BRAND_COLORS, BRAND_RADII, BRAND_SPACING } from '../assets/brand';
 
 const ProfessionalLogin = () => {
   const { login } = useAuth();
@@ -143,120 +127,200 @@ const ProfessionalLogin = () => {
   };
 
   return (
-    <Container component="main" maxWidth="sm">
-      <Paper elevation={3} sx={{ mt: 8, p: 4, borderRadius: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, justifyContent: 'center' }}>
-          <PsychologyIcon color="primary" />
-          <Typography variant="h6" fontWeight="bold">MR.CREAMS Pro</Typography>
-        </Box>
-        <Typography component="h1" variant="h5" gutterBottom align="center">
-          Professional Sign In
-        </Typography>
-        <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 3 }}>
-          For Admins, Therapists, Support, Executives, and Super Admins
-        </Typography>
-
-        {/* Quick Test Buttons - SIMPLIFIED */}
-        <Box sx={{ mb: 3, display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {['super_admin', 'platform_admin', 'admin', 'support', 'therapist', 'executive'].map(role => (
-            <Button key={role} size="small" variant="outlined" onClick={() => quickFill(role)}>
-              {role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-            </Button>
-          ))}
-        </Box>
-
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-        <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-          <TextField
-            fullWidth
-            label="Organization Code"
-            margin="normal"
-            required
+    <AuthPageShell
+      title="Professional sign in"
+      subtitle="For admins, therapists, support, executives and super admins."
+      footer={
+        <button
+          type="button"
+          onClick={() => navigate('/login')}
+          style={{
+            border: 'none',
+            background: 'transparent',
+            padding: 0,
+            cursor: 'pointer',
+            fontSize: 13,
+            color: 'rgba(15,23,42,0.8)',
+            textDecoration: 'underline'
+          }}
+        >
+          ← Back to User Login
+        </button>
+      }
+    >
+      <div
+        style={{
+          marginBottom: BRAND_SPACING.sm
+        }}
+      >
+        <BrandText variant="subtle" tone="soft">
+          Use your organization code and role to access MR.CREAMS Pro. Test credentials are available
+          for sandbox exploration.
+        </BrandText>
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 8,
+          marginBottom: BRAND_SPACING.sm
+        }}
+      >
+        {['super_admin', 'platform_admin', 'admin', 'support', 'therapist', 'executive'].map(
+          (role) => (
+            <BrandButton
+              key={role}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => quickFill(role)}
+            >
+              {role
+                .split('_')
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' ')}
+            </BrandButton>
+          )
+        )}
+      </div>
+      {error && (
+        <div
+          style={{
+            marginBottom: BRAND_SPACING.sm
+          }}
+        >
+          <NotificationBanner tone="coral" title="Login issue" message={error} />
+        </div>
+      )}
+      <form onSubmit={handleSubmit}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: BRAND_SPACING.sm
+          }}
+        >
+          <BrandInput
+            label="Organization code"
             value={formData.organizationCode}
             onChange={handleInputChange('organizationCode')}
-            placeholder="e.g., MRCREAMS-SUPER-2024"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <BusinessIcon sx={{ color: 'text.secondary' }} />
-                </InputAdornment>
-              )
-            }}
+            placeholder="e.g., MRCREAMS-SUPER-001"
+            required
           />
-
-          <FormControl fullWidth margin="normal" required>
-            <InputLabel>Professional Role</InputLabel>
-            <Select
+          <label
+            style={{
+              display: 'block',
+              fontSize: 13,
+              color: 'rgba(10,37,64,0.8)'
+            }}
+          >
+            <div
+              style={{
+                marginBottom: 6
+              }}
+            >
+              Professional role
+            </div>
+            <select
               value={formData.role}
-              label="Professional Role"
               onChange={handleInputChange('role')}
+              required
               disabled={availableRoles.length === 0}
-              displayEmpty
+              style={{
+                width: '100%',
+                borderRadius: BRAND_RADII.lg,
+                border: '1px solid rgba(10,37,64,0.22)',
+                padding: '10px 12px',
+                fontSize: 14,
+                backgroundColor: '#ffffff',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage:
+                  'linear-gradient(45deg, transparent 50%, rgba(15,23,42,0.45) 50%), linear-gradient(135deg, rgba(15,23,42,0.45) 50%, transparent 50%)',
+                backgroundPosition: 'calc(100% - 14px) calc(50% - 3px), calc(100% - 9px) calc(50% - 3px)',
+                backgroundSize: '5px 5px, 5px 5px',
+                backgroundRepeat: 'no-repeat'
+              }}
             >
               {availableRoles.length === 0 ? (
-                <MenuItem disabled value="">
-                  <em>Select organization code first</em>
-                </MenuItem>
+                <option value="" disabled>
+                  Select organization code first
+                </option>
               ) : (
-                availableRoles.map(role => (
-                  <MenuItem key={role} value={role}>
-                    {role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                  </MenuItem>
-                ))
+                <>
+                  <option value="" disabled>
+                    Select role
+                  </option>
+                  {availableRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {role
+                        .split('_')
+                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                        .join(' ')}
+                    </option>
+                  ))}
+                </>
               )}
-            </Select>
-          </FormControl>
-
-          <TextField
-            fullWidth
+            </select>
+          </label>
+          <BrandInput
             label="Email"
             type="email"
-            margin="normal"
-            required
             value={formData.email}
             onChange={handleInputChange('email')}
-          />
-
-          <TextField
-            fullWidth
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            margin="normal"
             required
-            value={formData.password}
-            onChange={handleInputChange('password')}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
           />
-
-          <Button
+          <div>
+            <BrandInput
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleInputChange('password')}
+              required
+            />
+            <div
+              style={{
+                marginTop: 6,
+                display: 'flex',
+                justifyContent: 'flex-end'
+              }}
+            >
+              <button
+                type="button"
+                aria-label="toggle password visibility"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  padding: 0,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: 0.04,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  color: 'rgba(0,180,216,0.9)'
+                }}
+              >
+                {showPassword ? 'Hide password' : 'Show password'}
+              </button>
+            </div>
+          </div>
+          <BrandButton
             type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2, py: 1.5 }}
             disabled={loading}
+            style={{
+              width: '100%',
+              marginTop: BRAND_SPACING.sm,
+              backgroundColor: BRAND_COLORS.deepBlue,
+              color: '#ffffff'
+            }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Sign In as Professional'}
-          </Button>
-
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Typography variant="body2">
-              <Link component={RouterLink} to="/login" variant="body2">
-                ← Back to User Login
-              </Link>
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
-    </Container>
+            {loading ? 'Signing in…' : 'Sign In as Professional'}
+          </BrandButton>
+        </div>
+      </form>
+    </AuthPageShell>
   );
 };
 

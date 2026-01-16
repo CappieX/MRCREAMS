@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { dashboardTheme } from '../constants/dashboardTheme';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const TicketSubmissionWidget = () => {
   const { user } = useAuth();

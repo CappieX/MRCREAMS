@@ -50,7 +50,7 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 // Create an axios instance with base URL and auth header interceptor
 // Ideally this should be imported from a central api config file, but defining here for now to ensure it works

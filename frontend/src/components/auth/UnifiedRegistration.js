@@ -1,48 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import {
-  Box,
-  Typography,
-  Button,
-  Container,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Card,
-  CardContent,
-  Grid,
-  FormControlLabel,
-  Checkbox,
-  Paper,
-  useTheme,
-  alpha,
-  Stepper,
-  Step,
-  StepLabel,
-  Alert,
-  RadioGroup,
-  Radio,
-  FormLabel,
-  InputAdornment,
-  IconButton,
-  CircularProgress
-} from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
-  Business as BusinessIcon,
-  Psychology as PsychologyIcon,
-  Person as PersonIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon
-} from '@mui/icons-material';
+import { AuthPageShell, NotificationBanner } from '../custom/CustomUI';
+import { BrandButton } from '../custom/Button';
+import { BrandInput } from '../custom/Input';
+import { BrandText } from '../custom/Typography';
+import { BRAND_COLORS, BRAND_SPACING, BRAND_RADII } from '../../assets/brand';
 
 const UnifiedRegistration = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
   const { register } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
@@ -85,21 +51,21 @@ const UnifiedRegistration = () => {
       title: 'Individual / Couple',
       description: 'For personal relationship improvement',
       steps: ['Account Type', 'Basic Information', 'Relationship Context', 'Terms & Privacy'],
-      icon: <PersonIcon />
+      icon: '👤'
     },
     {
       id: 'company',
       title: 'Company / Organization',
       description: 'For employee wellness programs',
       steps: ['Account Type', 'Company Information', 'Admin Account', 'Terms & Privacy'],
-      icon: <BusinessIcon />
+      icon: '🏢'
     },
     {
       id: 'therapist',
       title: 'Therapist / Professional',
       description: 'For licensed professionals',
       steps: ['Account Type', 'Professional Info', 'Credentials', 'Terms & Verification'],
-      icon: <PsychologyIcon />
+      icon: '🧠'
     }
   ];
 
@@ -265,11 +231,33 @@ const UnifiedRegistration = () => {
       // Register user - this will save to database via AuthContext
       await register(formData.email, formData.password, userData);
 
-      // User will be automatically redirected to appropriate onboarding
-      // based on userType and onboardingCompleted status
+      const tempPayload = {
+        email: formData.email,
+        name: formData.fullName || formData.email.split('@')[0],
+        userType,
+        relationshipStatus: formData.relationshipStatus,
+        age: formData.age,
+        companyName: formData.companyName,
+        companySize: formData.companySize,
+        industry: formData.industry,
+        professionalRole: formData.professionalRole,
+        licenseNumber: formData.licenseNumber,
+        yearsOfExperience: formData.yearsOfExperience,
+        credentials: formData.credentials,
+        specializations: formData.specializations,
+        languages: formData.languages
+      };
+      localStorage.setItem('onboarding_temp_data', JSON.stringify({ step: 0, data: tempPayload }));
+      if (userType === 'therapist') {
+        navigate('/onboarding/therapist');
+      } else if (userType === 'company') {
+        navigate('/onboarding/professional');
+      } else {
+        navigate('/onboarding/client');
+      }
 
     } catch (error) {
-      setError(error.response?.data?.error || 'Registration failed. Please try again.');
+      setError(error.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -277,315 +265,511 @@ const UnifiedRegistration = () => {
 
   const renderStepContent = (step) => {
     switch (step) {
-      case 0: // Account Type Selection
+      case 0:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <FormControl component="fieldset">
-                <FormLabel component="legend" sx={{ mb: 2, fontSize: '1.1rem', fontWeight: 'bold' }}>
-                  How will you be using MR.CREAMS?
-                </FormLabel>
-                <RadioGroup
-                  value={userType}
-                  onChange={(e) => setUserType(e.target.value)}
-                >
-                  {userTypes.map((type) => (
-                    <FormControlLabel
-                      key={type.id}
-                      value={type.id}
-                      control={<Radio />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                          <Box sx={{ color: theme.palette.primary.main }}>
-                            {type.icon}
-                          </Box>
-                          <Box>
-                            <Typography variant="h6" fontWeight="bold">
-                              {type.title}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {type.description}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      }
-                      sx={{
-                        border: `2px solid ${
-                          userType === type.id
-                            ? theme.palette.primary.main
-                            : theme.palette.divider
-                        }`,
-                        borderRadius: 2,
-                        mb: 2,
-                        '&.Mui-checked': {
-                          borderColor: theme.palette.primary.main,
-                          backgroundColor: alpha(theme.palette.primary.main, 0.04)
-                        }
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: BRAND_SPACING.sm
+            }}
+          >
+            <BrandText variant="h4">
+              How will you be using MR.CREAMS?
+            </BrandText>
+            <BrandText variant="body" tone="muted">
+              Choose the option that best describes how you plan to use the platform.
+            </BrandText>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: BRAND_SPACING.sm,
+                marginTop: BRAND_SPACING.sm
+              }}
+            >
+              {userTypes.map((type) => {
+                const selected = userType === type.id;
+                return (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setUserType(type.id)}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      borderRadius: BRAND_RADII.lg,
+                      border: selected
+                        ? `2px solid ${BRAND_COLORS.teal}`
+                        : '1px solid rgba(10,37,64,0.14)',
+                      backgroundColor: selected
+                        ? 'rgba(0,180,216,0.06)'
+                        : '#ffffff',
+                      padding: BRAND_SPACING.md,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: BRAND_SPACING.sm,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: BRAND_RADII.lg,
+                        backgroundColor: 'rgba(0,180,216,0.08)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 20
                       }}
-                    />
-                  ))}
-                </RadioGroup>
-              </FormControl>
-            </Grid>
-          </Grid>
+                    >
+                      {type.icon}
+                    </div>
+                    <div>
+                      <BrandText
+                        variant="h5"
+                        style={{
+                          marginBottom: 2
+                        }}
+                      >
+                        {type.title}
+                      </BrandText>
+                      <BrandText variant="caption" tone="muted">
+                        {type.description}
+                      </BrandText>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         );
 
-      case 1: // Basic Information (Common)
+      case 1:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Full Name"
-                value={formData.fullName}
-                onChange={handleInputChange('fullName')}
-                helperText="We'll use this to personalize your experience"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Email Address"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange('email')}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: BRAND_SPACING.sm
+            }}
+          >
+            <BrandInput
+              label="Full name"
+              value={formData.fullName}
+              onChange={handleInputChange('fullName')}
+              hint="We will use this to personalize your experience."
+            />
+            <BrandInput
+              label="Email address"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleInputChange('email')}
+            />
+            <div>
+              <BrandInput
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
+                required
                 value={formData.password}
                 onChange={handleInputChange('password')}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+              />
+              <div
+                style={{
+                  marginTop: 6,
+                  display: 'flex',
+                  justifyContent: 'flex-end'
                 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
-                label="Confirm Password"
-                type={showPassword ? 'text' : 'password'}
-                value={formData.confirmPassword}
-                onChange={handleInputChange('confirmPassword')}
-              />
-            </Grid>
-          </Grid>
+              >
+                <button
+                  type="button"
+                  aria-label="toggle password visibility"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    padding: 0,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    letterSpacing: 0.04,
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    color: 'rgba(0,180,216,0.9)'
+                  }}
+                >
+                  {showPassword ? 'Hide password' : 'Show password'}
+                </button>
+              </div>
+            </div>
+            <BrandInput
+              label="Confirm password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              value={formData.confirmPassword}
+              onChange={handleInputChange('confirmPassword')}
+            />
+          </div>
         );
 
-      case 2: // User Type Specific Information
+      case 2:
         if (userType === 'individual') {
           return (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <FormControl fullWidth required>
-                  <InputLabel>Relationship Status</InputLabel>
-                  <Select
-                    value={formData.relationshipStatus}
-                    onChange={handleInputChange('relationshipStatus')}
-                    label="Relationship Status"
-                  >
-                    {relationshipStatuses.map(status => (
-                      <MenuItem key={status} value={status}>{status}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Age (Optional)"
-                  type="number"
-                  value={formData.age}
-                  onChange={handleInputChange('age')}
-                />
-              </Grid>
-            </Grid>
-          );
-        } else if (userType === 'company') {
-          return (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Company Name"
-                  value={formData.companyName}
-                  onChange={handleInputChange('companyName')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Company Size</InputLabel>
-                  <Select
-                    value={formData.companySize}
-                    onChange={handleInputChange('companySize')}
-                    label="Company Size"
-                  >
-                    {companySizes.map(size => (
-                      <MenuItem key={size} value={size}>{size}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Industry</InputLabel>
-                  <Select
-                    value={formData.industry}
-                    onChange={handleInputChange('industry')}
-                    label="Industry"
-                  >
-                    {industries.map(industry => (
-                      <MenuItem key={industry} value={industry}>{industry}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth required>
-                  <InputLabel>Your Role</InputLabel>
-                  <Select
-                    value={formData.professionalRole}
-                    onChange={handleInputChange('professionalRole')}
-                    label="Your Role"
-                  >
-                    {professionalRoles.map(role => (
-                      <MenuItem key={role} value={role}>{role}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          );
-        } else if (userType === 'therapist') {
-          return (
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label="License Number"
-                  value={formData.licenseNumber}
-                  onChange={handleInputChange('licenseNumber')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>Years of Experience</InputLabel>
-                  <Select
-                    value={formData.yearsOfExperience}
-                    onChange={handleInputChange('yearsOfExperience')}
-                    label="Years of Experience"
-                  >
-                    <MenuItem value="0-1">0-1 years</MenuItem>
-                    <MenuItem value="2-5">2-5 years</MenuItem>
-                    <MenuItem value="6-10">6-10 years</MenuItem>
-                    <MenuItem value="11-15">11-15 years</MenuItem>
-                    <MenuItem value="16-20">16-20 years</MenuItem>
-                    <MenuItem value="20+">20+ years</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  Credentials
-                </Typography>
-                <Grid container spacing={1}>
-                  {credentials.map(credential => (
-                    <Grid item xs={12} sm={6} key={credential}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={(formData.credentials || []).includes(credential)}
-                            onChange={handleArrayChange('credentials')(credential)}
-                          />
-                        }
-                        label={credential}
-                      />
-                    </Grid>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: BRAND_SPACING.sm
+              }}
+            >
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  color: 'rgba(10,37,64,0.85)'
+                }}
+              >
+                <div
+                  style={{
+                    marginBottom: 4
+                  }}
+                >
+                  Relationship status
+                </div>
+                <select
+                  value={formData.relationshipStatus}
+                  onChange={handleInputChange('relationshipStatus')}
+                  style={{
+                    width: '100%',
+                    borderRadius: BRAND_RADII.lg,
+                    border: '1px solid rgba(10,37,64,0.22)',
+                    padding: '10px 12px',
+                    fontSize: 14
+                  }}
+                >
+                  <option value="">Select your status</option>
+                  {relationshipStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
                   ))}
-                </Grid>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  Specializations
-                </Typography>
-                <Grid container spacing={1}>
-                  {specializations.map(specialization => (
-                    <Grid item xs={12} sm={6} key={specialization}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={(formData.specializations || []).includes(specialization)}
-                            onChange={handleArrayChange('specializations')(specialization)}
-                          />
-                        }
-                        label={specialization}
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
-              </Grid>
-            </Grid>
+                </select>
+              </label>
+              <BrandInput
+                label="Age (optional)"
+                type="number"
+                value={formData.age}
+                onChange={handleInputChange('age')}
+              />
+            </div>
           );
         }
+
+        if (userType === 'company') {
+          return (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: BRAND_SPACING.sm
+              }}
+            >
+              <BrandInput
+                label="Company name"
+                required
+                value={formData.companyName}
+                onChange={handleInputChange('companyName')}
+              />
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  color: 'rgba(10,37,64,0.85)'
+                }}
+              >
+                <div
+                  style={{
+                    marginBottom: 4
+                  }}
+                >
+                  Company size
+                </div>
+                <select
+                  value={formData.companySize}
+                  onChange={handleInputChange('companySize')}
+                  style={{
+                    width: '100%',
+                    borderRadius: BRAND_RADII.lg,
+                    border: '1px solid rgba(10,37,64,0.22)',
+                    padding: '10px 12px',
+                    fontSize: 14
+                  }}
+                >
+                  <option value="">Select a range</option>
+                  {companySizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  color: 'rgba(10,37,64,0.85)'
+                }}
+              >
+                <div
+                  style={{
+                    marginBottom: 4
+                  }}
+                >
+                  Industry
+                </div>
+                <select
+                  value={formData.industry}
+                  onChange={handleInputChange('industry')}
+                  style={{
+                    width: '100%',
+                    borderRadius: BRAND_RADII.lg,
+                    border: '1px solid rgba(10,37,64,0.22)',
+                    padding: '10px 12px',
+                    fontSize: 14
+                  }}
+                >
+                  <option value="">Select an industry</option>
+                  {industries.map((industry) => (
+                    <option key={industry} value={industry}>
+                      {industry}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  color: 'rgba(10,37,64,0.85)'
+                }}
+              >
+                <div
+                  style={{
+                    marginBottom: 4
+                  }}
+                >
+                  Your role
+                </div>
+                <select
+                  value={formData.professionalRole}
+                  onChange={handleInputChange('professionalRole')}
+                  style={{
+                    width: '100%',
+                    borderRadius: BRAND_RADII.lg,
+                    border: '1px solid rgba(10,37,64,0.22)',
+                    padding: '10px 12px',
+                    fontSize: 14
+                  }}
+                >
+                  <option value="">Select a role</option>
+                  {professionalRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          );
+        }
+
+        if (userType === 'therapist') {
+          return (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: BRAND_SPACING.sm
+              }}
+            >
+              <BrandInput
+                label="License number"
+                required
+                value={formData.licenseNumber}
+                onChange={handleInputChange('licenseNumber')}
+              />
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  color: 'rgba(10,37,64,0.85)'
+                }}
+              >
+                <div
+                  style={{
+                    marginBottom: 4
+                  }}
+                >
+                  Years of experience
+                </div>
+                <select
+                  value={formData.yearsOfExperience}
+                  onChange={handleInputChange('yearsOfExperience')}
+                  style={{
+                    width: '100%',
+                    borderRadius: BRAND_RADII.lg,
+                    border: '1px solid rgba(10,37,64,0.22)',
+                    padding: '10px 12px',
+                    fontSize: 14
+                  }}
+                >
+                  <option value="">Select a range</option>
+                  <option value="0-1">0-1 years</option>
+                  <option value="2-5">2-5 years</option>
+                  <option value="6-10">6-10 years</option>
+                  <option value="11-15">11-15 years</option>
+                  <option value="16-20">16-20 years</option>
+                  <option value="20+">20+ years</option>
+                </select>
+              </label>
+              <div>
+                <BrandText
+                  variant="h6"
+                  style={{
+                    marginBottom: 6
+                  }}
+                >
+                  Credentials
+                </BrandText>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                    gap: 8
+                  }}
+                >
+                  {credentials.map((credential) => (
+                    <label
+                      key={credential}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 13
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={(formData.credentials || []).includes(credential)}
+                        onChange={handleArrayChange('credentials')(credential)}
+                      />
+                      <span>{credential}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <BrandText
+                  variant="h6"
+                  style={{
+                    marginBottom: 6
+                  }}
+                >
+                  Specializations
+                </BrandText>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                    gap: 8
+                  }}
+                >
+                  {specializations.map((specialization) => (
+                    <label
+                      key={specialization}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 13
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={(formData.specializations || []).includes(specialization)}
+                        onChange={handleArrayChange('specializations')(specialization)}
+                      />
+                      <span>{specialization}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
         return null;
 
-      case 3: // Terms & Privacy (Common)
+      case 3:
         return (
-          <Grid container spacing={3}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: BRAND_SPACING.sm
+            }}
+          >
             {userType === 'therapist' && (
-              <Grid item xs={12}>
-                <Alert severity="info">
-                  <Typography variant="subtitle2" fontWeight="bold">
-                    Verification Required
-                  </Typography>
-                  <Typography variant="body2">
-                    Your professional account will be reviewed within 1-2 business days.
-                    You'll receive email notification once approved.
-                  </Typography>
-                </Alert>
-              </Grid>
+              <NotificationBanner
+                tone="blue"
+                title="Verification required"
+                message="Your professional account will be reviewed within 1-2 business days. You will receive an email once approved."
+              />
             )}
-
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.agreeToTerms}
-                    onChange={handleCheckboxChange('agreeToTerms')}
-                  />
-                }
-                label="I agree to the Terms of Service and understand my responsibilities"
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 8,
+                fontSize: 13,
+                color: 'rgba(10,37,64,0.85)'
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={formData.agreeToTerms}
+                onChange={handleCheckboxChange('agreeToTerms')}
+                style={{
+                  marginTop: 3
+                }}
               />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.agreeToPrivacy}
-                    onChange={handleCheckboxChange('agreeToPrivacy')}
-                  />
-                }
-                label="I agree to the Privacy Policy and understand how data is protected"
+              <span>
+                I agree to the Terms of Service and understand my responsibilities.
+              </span>
+            </label>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 8,
+                fontSize: 13,
+                color: 'rgba(10,37,64,0.85)'
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={formData.agreeToPrivacy}
+                onChange={handleCheckboxChange('agreeToPrivacy')}
+                style={{
+                  marginTop: 3
+                }}
               />
-            </Grid>
-          </Grid>
+              <span>
+                I agree to the Privacy Policy and understand how my data is protected.
+              </span>
+            </label>
+          </div>
         );
 
       default:
@@ -593,105 +777,166 @@ const UnifiedRegistration = () => {
     }
   };
 
-  return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
-      <Container maxWidth="md">
-        <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
-          <Box
-            sx={{
-              p: 4,
-              background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.1)} 100%)` ,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-              Join MR.CREAMS
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Start your journey to better relationships
-            </Typography>
-          </Box>
-
-          <CardContent sx={{ p: 4 }}>
-            {/* Stepper */}
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-              {currentConfig.steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </Stepper>
-
-            {/* Error Display */}
-            {error && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {error}
-              </Alert>
-            )}
-
-            {/* Step Content */}
-            <Box sx={{ mb: 4 }}>
-              {renderStepContent(activeStep)}
-            </Box>
-
-            {/* Navigation Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Button
-                disabled={activeStep === 0 || isSubmitting}
-                onClick={handleBack}
-                startIcon={<ArrowBackIcon />}
+  const renderStepHeader = () => (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        marginBottom: BRAND_SPACING.md
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6
+        }}
+      >
+        <BrandText variant="caption" tone="muted">
+          Registration progress
+        </BrandText>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6
+          }}
+        >
+          {currentConfig.steps.map((label, index) => {
+            const isActive = index === activeStep;
+            const isCompleted = index < activeStep;
+            return (
+              <div
+                key={label}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
               >
-                Back
-              </Button>
-
-              {activeStep === currentConfig.steps.length - 1 ? (
-                <Button
-                  variant="contained"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
-                  sx={{
-                    px: 4,
-                    py: 1.5,
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold'
+                <div
+                  aria-hidden="true"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 999,
+                    border: isActive || isCompleted
+                      ? `1px solid ${BRAND_COLORS.teal}`
+                      : '1px solid rgba(15,23,42,0.2)',
+                    backgroundColor: isCompleted
+                      ? BRAND_COLORS.teal
+                      : isActive
+                      ? 'rgba(0,180,216,0.08)'
+                      : '#ffffff',
+                    color: isCompleted ? '#ffffff' : 'rgba(15,23,42,0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 600
                   }}
                 >
-                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  onClick={handleNext}
-                  sx={{
-                    px: 4,
-                    py: 1.5,
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold'
-                  }}
+                  {index + 1}
+                </div>
+                <BrandText
+                  variant="caption"
+                  tone={isActive ? 'soft' : 'muted'}
                 >
-                  Next
-                </Button>
-              )}
-            </Box>
+                  {label}
+                </BrandText>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 
-            {/* Login Link */}
-            <Box sx={{ textAlign: 'center', mt: 3 }}>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={() => navigate('/login')}
-                >
-                  Sign in here
-                </Button>
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+  const isLastStep = activeStep === currentConfig.steps.length - 1;
+
+  return (
+    <AuthPageShell
+      title="Join MR.CREAMS"
+      subtitle="Start your journey to better relationships."
+      footer={
+        <div
+          style={{
+            textAlign: 'center'
+          }}
+        >
+          <BrandText variant="caption" tone="muted">
+            Already have an account?{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+                color: 'rgba(15,23,42,0.9)',
+                textDecoration: 'underline'
+              }}
+            >
+              Sign in here
+            </button>
+          </BrandText>
+        </div>
+      }
+    >
+      {renderStepHeader()}
+      {error && (
+        <div
+          style={{
+            marginBottom: BRAND_SPACING.sm
+          }}
+        >
+          <NotificationBanner
+            tone="coral"
+            title="Check your details"
+            message={error}
+          />
+        </div>
+      )}
+      <div
+        style={{
+          marginBottom: BRAND_SPACING.md
+        }}
+      >
+        {renderStepContent(activeStep)}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: BRAND_SPACING.sm
+        }}
+      >
+        <BrandButton
+          type="button"
+          variant="ghost"
+          onClick={handleBack}
+          disabled={activeStep === 0 || isSubmitting}
+        >
+          Back
+        </BrandButton>
+        <BrandButton
+          type="button"
+          onClick={isLastStep ? handleSubmit : handleNext}
+          disabled={isSubmitting}
+          style={{
+            minWidth: 140
+          }}
+        >
+          {isSubmitting
+            ? 'Creating account...'
+            : isLastStep
+            ? 'Create account'
+            : 'Next'}
+        </BrandButton>
+      </div>
+    </AuthPageShell>
   );
 };
 

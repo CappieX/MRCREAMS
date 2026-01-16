@@ -1,33 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Paper,
-  Container,
-  Alert,
-  Link,
-  CircularProgress,
-  InputAdornment,
-  IconButton
-} from '@mui/material';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { useTheme } from '@mui/material/styles';
+import { BrandButton } from '../components/custom/Button';
+import { BrandInput } from '../components/custom/Input';
+import { BrandText } from '../components/custom/Typography';
+import { AuthPageShell, NotificationBanner } from '../components/custom/CustomUI';
+import { BRAND_SPACING } from '../assets/brand';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
-  const theme = useTheme();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,119 +43,151 @@ const Login = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Paper
-        elevation={3}
-        sx={{
-          mt: 8,
-          p: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          borderRadius: 2,
-          backgroundColor: theme.palette.background.paper,
-        }}
-      >
-        <Box
-          sx={{
+    <AuthPageShell
+      title="Sign in to MR.CREAMS"
+      subtitle="For individuals and couples – your relationship support home."
+      footer={
+        <div
+          style={{
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
+            justifyContent: 'center',
+            gap: 8,
+            flexWrap: 'wrap'
           }}
         >
-          <Box
-            sx={{
-              backgroundColor: theme.palette.primary.main,
-              borderRadius: '50%',
-              p: 1,
-              mb: 2,
-              color: '#fff',
+          <button
+            type="button"
+            onClick={() => navigate('/register')}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              padding: 0,
+              cursor: 'pointer',
+              fontSize: 13,
+              color: 'rgba(15,23,42,0.8)',
+              textDecoration: 'underline'
             }}
           >
-            <LockOutlinedIcon />
-          </Box>
-          <Typography component="h1" variant="h5" gutterBottom>
-            User Sign In
-          </Typography>
-          <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 3 }}>
-            For Individuals and Couples - Relationship Support Portal
-          </Typography>
-
-          {loginError && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {loginError}
-            </Alert>
-          )}
-
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={formData.email}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
+            Create Account
+          </button>
+          <span
+            style={{
+              fontSize: 13,
+              color: 'rgba(15,23,42,0.5)'
+            }}
+          >
+            •
+          </span>
+          <button
+            type="button"
+            onClick={() => navigate('/login/professional')}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              padding: 0,
+              cursor: 'pointer',
+              fontSize: 13,
+              color: 'rgba(15,23,42,0.8)',
+              textDecoration: 'underline'
+            }}
+          >
+            Professional Login
+          </button>
+        </div>
+      }
+    >
+      {loginError && (
+        <div
+          style={{
+            marginBottom: BRAND_SPACING.sm
+          }}
+        >
+          <NotificationBanner
+            tone="coral"
+            title="We could not sign you in"
+            message={loginError}
+          />
+        </div>
+      )}
+      <form onSubmit={handleSubmit}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: BRAND_SPACING.sm
+          }}
+        >
+          <BrandInput
+            label="Email address"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            name="email"
+            autoComplete="email"
+            autoFocus
+            required
+            disabled={isSubmitting}
+          />
+          <div>
+            <BrandInput
               label="Password"
               type={showPassword ? 'text' : 'password'}
-              id="password"
-              autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
+              name="password"
+              autoComplete="current-password"
+              required
               disabled={isSubmitting}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
             />
-            
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
-              disabled={isSubmitting}
+            <div
+              style={{
+                marginTop: 6,
+                display: 'flex',
+                justifyContent: 'flex-end'
+              }}
             >
-              {isSubmitting ? <CircularProgress size={24} /> : 'Sign In as User'}
-            </Button>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-              <Typography variant="body2">
-                <Link component={RouterLink} to="/register" variant="body2">
-                  Create Account
-                </Link>
-              </Typography>
-              <Typography variant="body2">•</Typography>
-              <Typography variant="body2">
-                <Link component={RouterLink} to="/login/professional" variant="body2">
-                  Professional Login
-                </Link>
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      </Paper>
-    </Container>
+              <button
+                type="button"
+                aria-label="toggle password visibility"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  padding: 0,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: 0.04,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  color: 'rgba(0,180,216,0.9)'
+                }}
+              >
+                {showPassword ? 'Hide password' : 'Show password'}
+              </button>
+            </div>
+          </div>
+          <BrandButton
+            type="submit"
+            style={{
+              width: '100%',
+              marginTop: BRAND_SPACING.sm
+            }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Signing in…' : 'Sign In as User'}
+          </BrandButton>
+          <BrandText
+            variant="caption"
+            tone="muted"
+            style={{
+              marginTop: 4
+            }}
+          >
+            Private by design. Your emotional data is encrypted in transit and at rest.
+          </BrandText>
+        </div>
+      </form>
+    </AuthPageShell>
   );
 };
 

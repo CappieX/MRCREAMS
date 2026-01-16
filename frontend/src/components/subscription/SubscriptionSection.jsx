@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Tag, Table, Radio, Select, Button, Space, QRCode, Alert } from 'antd';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const plans = [
   { key: 'free', name: 'Free', price: 0, currency: 'USD' },
@@ -25,9 +25,11 @@ export default function SubscriptionSection() {
   const [currency, setCurrency] = useState('USD');
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [checkout, setCheckout] = useState(null);
+  const [error, setError] = useState(null);
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const token = localStorage.getItem('authToken');
       const cfg = { headers: { Authorization: `Bearer ${token}` } };
@@ -36,6 +38,9 @@ export default function SubscriptionSection() {
       setTrialInfo(subRes.data?.data?.trial || null);
       const histRes = await axios.get('/api/integrations/payments/history', cfg);
       setHistory(histRes.data?.data?.history || []);
+    } catch (err) {
+      console.error('Failed to load subscription data:', err);
+      setError('Failed to load subscription data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -47,6 +52,7 @@ export default function SubscriptionSection() {
 
   const handlePlanApply = async () => {
     setLoading(true);
+    setError(null);
     try {
       const plan = plans.find(p => p.key === selectedPlan);
       const token = localStorage.getItem('authToken');
@@ -54,6 +60,9 @@ export default function SubscriptionSection() {
       const payload = { tier: selectedPlan, priceId: plan?.priceId || null, currency };
       const res = await axios.post('/api/subscription', payload, cfg);
       await loadData();
+    } catch (err) {
+      console.error('Failed to update subscription plan:', err);
+      setError('Failed to update subscription. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -61,6 +70,7 @@ export default function SubscriptionSection() {
 
   const handleInitializePayment = async () => {
     setLoading(true);
+    setError(null);
     try {
       const plan = plans.find(p => p.key === 'premium');
       const token = localStorage.getItem('authToken');
@@ -68,6 +78,9 @@ export default function SubscriptionSection() {
       const payload = { amount: plan.price, currency: currency, gateway, description: 'MR.CREAMS Premium Subscription' };
       const res = await axios.post('/api/payment/initialize', payload, cfg);
       setCheckout(res.data?.data || null);
+    } catch (err) {
+      console.error('Failed to initialize payment:', err);
+      setError('Failed to initialize payment. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -75,6 +88,9 @@ export default function SubscriptionSection() {
 
   return (
     <Space direction="vertical" style={{ width: '100%' }} size="large">
+      {error && (
+        <Alert type="error" message={error} />
+      )}
       <Row gutter={16}>
         <Col xs={24} md={8}>
           <Card>

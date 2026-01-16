@@ -7,10 +7,12 @@ import EmotionalSnapshot from './EmotionalSnapshot';
 import TermsPrivacy from './TermsPrivacy';
 import OnboardingEmergencyExit from './OnboardingEmergencyExit';
 import WelcomeScreen from './WelcomeScreen';
+import { useOnboarding } from '../../hooks/useOnboarding';
 
 const OnboardingFlow = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [onboardingData, setOnboardingData] = useState({});
+  const { saveOnboardingProgress } = useOnboarding();
 
   const steps = [
     { component: UserTypeSelection, title: "Relationship Status" },
@@ -22,33 +24,47 @@ const OnboardingFlow = ({ onComplete }) => {
     { component: WelcomeScreen, title: "Welcome" }
   ];
 
-  // Debug: Log when onComplete prop changes
   useEffect(() => {
-    console.log('OnboardingFlow mounted with onComplete:', typeof onComplete);
-  }, [onComplete]);
+    const stored = localStorage.getItem('onboarding_temp_data');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.data) {
+          setOnboardingData(parsed.data);
+        }
+        if (typeof parsed.step === 'number' && parsed.step >= 0 && parsed.step < steps.length) {
+          setCurrentStep(parsed.step);
+        }
+      } catch (e) {
+      }
+    }
+  }, []);
 
   const updateOnboardingData = (newData) => {
     setOnboardingData(prev => ({ ...prev, ...newData }));
   };
 
   const handleStepComplete = (stepData) => {
-    console.log(`Step ${currentStep} completed with data:` , stepData);
+    const mergedData = { ...onboardingData, ...stepData };
+    const nextStep = currentStep < steps.length - 1 ? currentStep + 1 : currentStep;
     updateOnboardingData(stepData);
-
-    // Move to next step if not the last one
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     }
+    saveOnboardingProgress(nextStep, mergedData);
+    localStorage.setItem('onboarding_temp_data', JSON.stringify({ step: nextStep, data: mergedData }));
   };
 
   const handleFinalComplete = (finalData) => {
-    console.log('Final completion called with:', finalData);
     const completeData = { ...onboardingData, ...finalData };
+    const finalStepIndex = steps.length - 1;
+    saveOnboardingProgress(finalStepIndex, completeData);
+    localStorage.setItem('onboarding_temp_data', JSON.stringify({ step: finalStepIndex, data: completeData }));
 
     if (typeof onComplete === 'function') {
       onComplete(completeData);
     } else {
-      console.error('onComplete is not available, using fallback');
+      localStorage.removeItem('onboarding_temp_data');
       window.location.href = '/dashboard';
     }
   };

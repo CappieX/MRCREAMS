@@ -15,7 +15,7 @@ import {
   Alert,
 } from '@mui/material';
 import { Save as SaveIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import axios from 'axios';
+import axios from 'axios/dist/browser/axios.cjs';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 

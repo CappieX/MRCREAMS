@@ -1,13 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#1976d2" />
-      <stop offset="100%" stop-color="#e91e63" />
-    </linearGradient>
+    <style>
+      .brand { fill: #ff7a00; }
+      .text { fill: #ff7a00; font-family: Arial, Helvetica, sans-serif; font-weight: 600; }
+    </style>
   </defs>
-  <rect width="200" height="60" rx="10" fill="url(#gradient)" opacity="0.1" />
-  <text x="10" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="currentColor">
-    W.C.R.E.A.M.S.
-  </text>
-  <path d="M170 20c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10-4.5-10-10-10zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-1-13h2v6h-2v-6zm0 8h2v2h-2v-2z" fill="currentColor" />
+
+  <!-- Main circular abstract mark -->
+  <path class="brand" d="
+    M300 80
+    C190 80 110 160 110 270
+    C110 380 190 460 300 460
+    C410 460 490 380 490 270
+    C490 160 410 80 300 80
+    Z
+
+    M330 140
+    C390 140 420 190 400 230
+    C370 280 300 270 280 240
+    C260 210 280 160 330 140
+    Z
+
+    M260 260
+    C230 300 250 340 290 380
+    C310 400 330 380 320 350
+    C300 300 290 290 260 260
+    Z
+  "/>
+
+  <!-- Decorative dots -->
+  <circle cx="170" cy="480" r="14" class="brand"/>
+  <circle cx="430" cy="480" r="14" class="brand"/>
+
+  <!-- ENUM text -->
+  <text x="300" y="560" font-size="96" text-anchor="middle" class="text">Enum</text>
+
+  <!-- Technology text -->
+  <line x1="170" y1="610" x2="250" y2="610" stroke="#ff7a00" stroke-width="6"/>
+  <text x="300" y="640" font-size="42" text-anchor="middle" class="text">Technology</text>
+  <line x1="350" y1="610" x2="430" y2="610" stroke="#ff7a00" stroke-width="6"/>
+
 </svg>

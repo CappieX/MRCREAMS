@@ -44,14 +44,6 @@ const authenticateToken = async (req, res, next) => {
 
     const user = userResult.rows[0];
 
-    // Check if email is verified (for non-admin users)
-    if (!user.email_verified && !['super_admin', 'admin', 'it_admin', 'platform_admin'].includes(user.user_type)) {
-      return res.status(401).json({ 
-        error: 'Email verification required',
-        code: 'EMAIL_NOT_VERIFIED'
-      });
-    }
-
     // Attach user to request
     req.user = {
       id: user.id,

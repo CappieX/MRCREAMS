@@ -7,6 +7,7 @@ import { ThemeContext, ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { initAccessibility } from './utils/accessibilityUtils';
 import { initPerformanceTracking } from './utils/performanceMonitoring';
+import { applyCustomTheme } from './styles/custom-theme';
 
 // Components
 import Header from './components/Header';
@@ -82,7 +83,11 @@ import TicketSubmissionWidget from './components/TicketSubmissionWidget';
 
 // Import onboarding components
 import { useOnboarding } from './hooks/useOnboarding';
-import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import OnboardingRouter from './pages/onboarding';
+import ClientOnboarding from './pages/onboarding/client/ClientOnboarding';
+import TherapistOnboarding from './pages/onboarding/therapist/TherapistOnboarding';
+import ProfessionalOnboarding from './pages/onboarding/professional/ProfessionalOnboarding';
+import AdminOnboarding from './pages/onboarding/admin/AdminOnboarding';
 
 // Import unified registration component
 import UnifiedRegistration from './components/auth/UnifiedRegistration';
@@ -162,6 +167,9 @@ const AuthenticatedLayout = () => {
                 <Route path="sessions" element={<MySessions />} />
                 <Route path="clients" element={<MyClients />} />
               </Route>
+              <Route path="/dashboards/therapist" element={<Navigate to="/dashboard/therapist" replace />} />
+              <Route path="/dashboards/admin" element={<Navigate to="/dashboard/admin" replace />} />
+              <Route path="/dashboards/organization" element={<Navigate to="/dashboard/platform-admin" replace />} />
               <Route path="/harmony-hub" element={<HarmonyTracker />} />
               <Route path="/harmony-hub/new" element={<RelationshipChallengeForm />} />
               <Route path="/harmony-hub/edit/:id" element={<RelationshipChallengeForm />} />
@@ -190,10 +198,9 @@ const AppContent = () => {
   const { completeOnboarding } = useOnboarding();
   
   useEffect(() => {
-    // Initialize accessibility features
     initAccessibility();
-    // Initialize performance tracking
     initPerformanceTracking();
+    applyCustomTheme();
   }, []);
 
   const handleOnboardingComplete = async (onboardingData) => {
@@ -206,7 +213,8 @@ const AppContent = () => {
 
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      alert('There was an error completing your onboarding. Please try again.');
+      const message = error && error.message ? error.message : 'Unknown error';
+      alert(`There was an error completing your onboarding: ${message}`);
     }
   };
 
@@ -238,9 +246,11 @@ const AppContent = () => {
         <Route path="/about" element={<About />} />
 
         <Route path="/verification" element={<ApplicationVerification />} />
-        <Route path="/onboarding" element={
-          <OnboardingFlow onComplete={handleOnboardingComplete} />
-        } />
+        <Route path="/onboarding" element={<OnboardingRouter />} />
+        <Route path="/onboarding/client" element={<ClientOnboarding />} />
+        <Route path="/onboarding/therapist" element={<TherapistOnboarding />} />
+        <Route path="/onboarding/professional" element={<ProfessionalOnboarding />} />
+        <Route path="/onboarding/admin" element={<AdminOnboarding />} />
         <Route path="/*" element={
           <ProtectedRoute>
             <AuthenticatedLayout />

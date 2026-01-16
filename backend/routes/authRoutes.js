@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const auditLogService = require('../services/auditLogService');
+const { sendWelcomeEmail } = require('../services/emailService');
 
 // Secret key for JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'wcreams_secret_key';
@@ -329,6 +330,13 @@ router.put('/user/profile', authenticateToken, async (req, res) => {
       onboardingData
     } = req.body;
 
+    const currentUserResult = await client.query(
+      'SELECT email, name, user_type, onboarding_completed FROM users WHERE id = $1',
+      [userId]
+    );
+
+    const currentUser = currentUserResult.rows[0];
+
     await client.query('BEGIN');
 
     const updates = [];
@@ -373,8 +381,27 @@ router.put('/user/profile', authenticateToken, async (req, res) => {
       'SELECT id, email, name, user_type, onboarding_completed, email_verified FROM users WHERE id = $1',
       [userId]
     );
+    const updatedUser = refreshed.rows[0];
 
-    res.json(refreshed.rows[0]);
+    const shouldSendWelcome =
+      typeof onboardingCompleted === 'boolean' &&
+      onboardingCompleted &&
+      currentUser &&
+      currentUser.onboarding_completed === false;
+
+    if (shouldSendWelcome) {
+      try {
+        await sendWelcomeEmail(
+          updatedUser.email,
+          updatedUser.name || 'there',
+          updatedUser.user_type
+        );
+      } catch (emailError) {
+        console.error('Welcome email send error after onboarding:', emailError);
+      }
+    }
+
+    res.json(updatedUser);
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Update profile error:', error);

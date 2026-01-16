@@ -182,9 +182,45 @@ const sendPasswordReset = async (email, name, resetToken) => {
 const sendWelcomeEmail = async (email, name, userType) => {
   try {
     const transporter = createTransporter();
-    
-    const dashboardUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`;
-    
+
+    let dashboardPath = '/dashboard';
+    if (userType === 'therapist') {
+      dashboardPath = '/dashboards/therapist';
+    } else if (['company', 'platform_admin', 'executive'].includes(userType)) {
+      dashboardPath = '/dashboards/organization';
+    } else if (['admin', 'super_admin', 'it_admin', 'support'].includes(userType)) {
+      dashboardPath = '/dashboards/admin';
+    }
+
+    const dashboardUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}${dashboardPath}`;
+
+    let contentBlocks = [];
+    if (userType === 'therapist') {
+      contentBlocks = [
+        '<li>Verify your professional credentials</li>',
+        '<li>Set up your client portal and availability</li>',
+        '<li>Explore advanced analytics for your sessions</li>'
+      ];
+    } else if (['company', 'platform_admin', 'executive'].includes(userType)) {
+      contentBlocks = [
+        '<li>Connect your HR or people systems</li>',
+        '<li>Invite managers and key stakeholders</li>',
+        '<li>Review your organization wellness dashboards</li>'
+      ];
+    } else if (['admin', 'super_admin', 'it_admin', 'support'].includes(userType)) {
+      contentBlocks = [
+        '<li>Review default security and privacy settings</li>',
+        '<li>Configure roles, permissions, and escalation paths</li>',
+        '<li>Set up monitoring and alerting for your environment</li>'
+      ];
+    } else {
+      contentBlocks = [
+        '<li>Complete your emotional baseline assessment</li>',
+        '<li>Explore personalized growth exercises</li>',
+        '<li>Set up your first reflection session</li>'
+      ];
+    }
+
     const mailOptions = {
       from: EMAIL_FROM,
       to: email,
@@ -205,10 +241,7 @@ const sendWelcomeEmail = async (email, name, userType) => {
             <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #667eea;">
               <h3 style="color: #333; margin-top: 0;">What's Next?</h3>
               <ul style="color: #666; line-height: 1.8;">
-                <li>Complete your profile setup</li>
-                <li>Take your first emotion check-in</li>
-                <li>Explore our AI-powered insights</li>
-                <li>Start tracking your relationship patterns</li>
+                ${contentBlocks.join('')}
               </ul>
             </div>
             
@@ -240,7 +273,7 @@ const sendWelcomeEmail = async (email, name, userType) => {
         </div>
       `
     };
-    
+
     const result = await transporter.sendMail(mailOptions);
     console.log('Welcome email sent:', result.messageId);
     return true;
