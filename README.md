@@ -1,5 +1,9 @@
 # MR.CREAMS - Modern Relationship Conflict Resolution & Emotion Analysis Management System
 <img src="assets/github_preview.webp" alt="MR.CREAMS UI Preview" width="100%" />
+<p align="center">
+  <em>MR.CREAMS — Live emotion mapping, session timelines, and AI-powered relationship insights</em>
+</p>
+
 
 **Smart healing for modern relationships.**
 
