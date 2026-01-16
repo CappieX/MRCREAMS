@@ -1,4 +1,5 @@
 # MR.CREAMS - Modern Relationship Conflict Resolution & Emotion Analysis Management System
+<img src="assets/github_preview.webp" alt="MR.CREAMS UI Preview" width="100%" />
 
 **Smart healing for modern relationships.**
 
@@ -165,6 +166,12 @@ The dashboard provides an overview of conflict statistics and recent conflicts. 
 ### Analytics
 
 The Analytics page provides visual representations of your conflict data, helping you identify patterns and trends over time.
+
+
+
+
+
+
 
 ### Recommendations
 
